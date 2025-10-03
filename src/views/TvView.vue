@@ -70,7 +70,7 @@ const listTv = async (genreId) => {
   flex-wrap: wrap;
   gap: 2rem;
   list-style: none;
-  padding: 0;
+  padding: 0.8vw;
 }
 
 .genre-item {

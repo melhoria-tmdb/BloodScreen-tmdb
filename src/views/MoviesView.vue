@@ -60,7 +60,7 @@ const listMovies = async (genreId) => {
       />
       <div class="movie-details">
         <p class="movie-title">{{ movie.title }}</p>
-        <p class="movie-release-date">{{ formatDate(movie.release_date) }}</p>  
+        <p class="movie-release-date">{{ formatDate(movie.release_date) }}</p>
 
         <!-- gêneros do filme -->
         <p class="movie-genres">
@@ -84,7 +84,7 @@ const listMovies = async (genreId) => {
   flex-wrap: wrap;
   gap: 2rem;
   list-style: none;
-  padding: 0;
+  padding: 0.5vw;
 }
 
 .genre-item {

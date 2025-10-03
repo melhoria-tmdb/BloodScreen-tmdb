@@ -5,6 +5,60 @@
   margin: 0;
 }
 
+:root {
+  --bg: #ffffff;
+  --text: #111111;
+  --header-bg: #f5f5f5;
+  --header-text: #111111;
+}
+
+.dark {
+  --bg: #0b0b0b;
+  --text: #eeeeee;
+  --header-bg: #111111;
+  --header-text: #ffffff;
+}
+
+html, body, #app {
+  height: 100%;
+  margin: 0;
+}
+
+/* usa variáveis para que o tema mude facilmente */
+body {
+  background: var(--bg);
+  color: var(--text);
+  transition: background-color .2s, color .2s;
+}
+
+/* header usa as mesmas variáveis */
+header {
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  background-color: var(--header-bg);
+  color: var(--header-text);
+  font-size: 1.2rem;
+  padding-left: 2rem;
+}
+
+nav {
+  column-gap: 2rem;
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+}
+
+nav a {
+  text-decoration: none;
+  color: inherit; /* herda a cor do header */
+}
+
+/* botão simples */
+button {
+  cursor: pointer;
+}
+
 body {
   min-height: 100vh;
   line-height: 1.6;
@@ -12,4 +66,10 @@ body {
     Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   font-size: 15px;
   text-rendering: optimizeLegibility;
+}
+
+h1 {
+  padding-left: 1.2rem;
+  margin-top: 0.8rem;
+  margin-bottom: 0.8rem;
 }
