@@ -15,27 +15,36 @@ app.use(createPinia());
 app.mount('#app');
 
 //Função Dark Mode - Change Themes
-const isDarkMode = ref(localStorage.getItem('theme') === 'dark')
+const isDarkMode = ref(localStorage.getItem('theme') === 'dark');
+const rotating = ref(false); // controle da animação do ícone
 
 function applyTheme() {
-  if (isDarkMode.value) document.documentElement.classList.add('dark')
-  else document.documentElement.classList.remove('dark')
+  if (isDarkMode.value) document.documentElement.classList.add('dark');
+  else document.documentElement.classList.remove('dark');
 
-  localStorage.setItem('theme', isDarkMode.value ? 'dark' : 'light')
+  localStorage.setItem('theme', isDarkMode.value ? 'dark' : 'light');
 }
 
 function toggleTheme() {
-  isDarkMode.value = !isDarkMode.value
-  applyTheme()
+  rotating.value = true;       // inicia a rotação
+  isDarkMode.value = !isDarkMode.value;
+  applyTheme();
+
+  // termina a rotação após 0.5s
+  setTimeout(() => {
+    rotating.value = false;
+  }, 500);
 }
 
-applyTheme()
+// aplica tema no carregamento
+applyTheme();
 
-app.config.globalProperties.$toggleTheme = toggleTheme
+// expõe globalmente para usar nos componentes
+app.config.globalProperties.$toggleTheme = toggleTheme;
+app.config.globalProperties.$rotating = rotating;
 Object.defineProperty(app.config.globalProperties, '$isDarkMode', {
   get() {
-    return isDarkMode.value
+    return isDarkMode.value;
   }
-})
-
+});
 

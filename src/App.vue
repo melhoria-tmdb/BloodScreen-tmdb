@@ -2,15 +2,20 @@
 import { ref } from 'vue'
 
 const isDarkMode = ref(localStorage.getItem('theme') === 'dark')
+const rotating = ref(false)
 
 function toggleTheme() {
+  rotating.value = true
   isDarkMode.value = !isDarkMode.value
+
   if (isDarkMode.value) {
     document.documentElement.classList.add('dark')
   } else {
     document.documentElement.classList.remove('dark')
   }
   localStorage.setItem('theme', isDarkMode.value ? 'dark' : 'light')
+
+  setTimeout(() => rotating.value = false, 500) // remove classe de rotação após 0.5s
 }
 </script>
 
@@ -22,11 +27,10 @@ function toggleTheme() {
       <router-link to="/tv">Programas de TV</router-link>
     </nav>
 
-    <button
-      @click="toggleTheme()"
-      class="p-2 border rounded text-3xl text-yellow-500"
-    >
-      <span :class="['mdi', isDarkMode ? 'mdi-weather-night' : 'mdi-white-balance-sunny']"></span>
+    <button @click="toggleTheme()" class="p-2 border rounded text-3xl text-yellow-500">
+      <span
+        :class="['mdi rotate', isDarkMode ? 'mdi-weather-night' : 'mdi-white-balance-sunny', rotating ? 'rotate-rotate' : '']">
+      </span>
     </button>
   </header>
 
@@ -35,7 +39,7 @@ function toggleTheme() {
   </main>
 </template>
 
-<style scoped>
+<style>
 header {
   height: 3rem;
   display: flex;
@@ -43,13 +47,12 @@ header {
   color: #fff;
   font-size: 1.2rem;
   padding-left: 2rem;
-  display: flex;
   justify-content: space-between;
+  align-items: center;
 }
 
 nav {
   column-gap: 2rem;
-  margin-bottom: 0;
   display: flex;
   align-items: center;
 }
@@ -59,11 +62,21 @@ nav a {
   color: #fff;
 }
 
+/* botão tema */
 button {
   background: none;
   border: none;
-  font-size: 1.4rem;
+  font-size: 1.6rem;
   padding-right: 2.5rem;
-  color:#fff
+  color: white;
+}
+
+.rotate {
+  display: inline-block;
+  transition: transform 0.5s ease;
+}
+
+.rotate-rotate {
+  transform: rotate(360deg);
 }
 </style>
