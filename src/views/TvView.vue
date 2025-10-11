@@ -2,26 +2,25 @@
 import { ref, onMounted } from 'vue';
 import api from '@/plugins/axios';
 import Loading from 'vue-loading-overlay';
+import { useGenreStore } from '@/stores/genre';
+import { useRouter } from 'vue-router'
 
 const isLoading = ref(false);
-
-const genres = ref([]);
-
-function getGenreName(id) {
-  const genero = genres.value.find((genre) => genre.id === id);
-  return genero.name;
-}
+const genreStore = useGenreStore();
+const router = useRouter()
 
 const formatDate = (date) => new Date(date).toLocaleDateString('pt-BR');
 
 onMounted(async () => {
-  const response = await api.get('genre/tv/list?language=pt-BR');
-  genres.value = response.data.genres;
+  isLoading.value = true;
+  await genreStore.getAllGenres('tv');
+  isLoading.value = false;
 });
 
 const tv = ref([]);
 
 const listTv = async (genreId) => {
+  genreStore.setCurrentGenreId(genreId);
   isLoading.value = true;
   const response = await api.get('discover/tv', {
     params: {
@@ -33,13 +32,22 @@ const listTv = async (genreId) => {
   isLoading.value = false;
 };
 
+function openShow(showId) {
+  router.push({ name: 'ShowDetails', params: { showId } });
+}
 </script>
 
 <template>
   <h1>Programas de TV</h1>
   <ul class="genre-list">
-    <li v-for="genre in genres" :key="genre.id" @click="listTv(genre.id)" class="genre-item">
-      {{ genre.name }}
+  <li
+    v-for="genre in genreStore.genres"
+    :key="genre.id"
+    @click="listTv(genre.id)"
+    class="genre-item"
+    :class="{ active: genre.id === genreStore.currentGenreId }"
+    >
+    {{ genre.name }}
     </li>
   </ul>
 
@@ -47,15 +55,26 @@ const listTv = async (genreId) => {
 
   <div class="show-list">
     <div v-for="show in tv" :key="show.id" class="show-card">
-      <img :src="`https://image.tmdb.org/t/p/w500${show.poster_path}`" :alt="show.title" />
+
+      <img
+        :src="`https://image.tmdb.org/t/p/w500${show.poster_path}`"
+        :alt="show.title"
+        @click="openShow(show.id)"
+      />
+
       <div class="show-details">
         <p class="show-title">{{ show.name }}</p>
         <p class="show-release-date">{{ formatDate(show.first_air_date) }}</p>
 
         <!-- gêneros do show -->
         <p class="show-genres">
-          <span v-for="genre_id in show.genre_ids" :key="genre_id" @click="listTv(genre_id)">
-            {{ getGenreName(genre_id) }}
+          <span
+            v-for="genre_id in show.genre_ids"
+            :key="genre_id"
+            @click="listTv(genre_id)"
+            :class="{ active: genre_id === genreStore.currentGenreId }"
+          >
+            {{ genreStore.getGenreName(genre_id) }}
           </span>
         </p>
       </div>
@@ -153,4 +172,16 @@ const listTv = async (genreId) => {
   background-color: #455a08;
   box-shadow: 0 0 0.5rem #748708;
 }
+
+.active {
+  background-color: #8ea029;
+  font-weight: bolder;
+}
+
+.show-genres span.active {
+  background-color: #abc322;
+  color: #000;
+  font-weight: bolder;
+}
+
 </style>

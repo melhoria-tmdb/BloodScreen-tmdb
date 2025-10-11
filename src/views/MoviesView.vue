@@ -2,36 +2,39 @@
 import { ref, onMounted } from 'vue';
 import api from '@/plugins/axios';
 import Loading from 'vue-loading-overlay';
+import { useGenreStore } from '@/stores/genre';
+import { useRouter } from 'vue-router'
 
 const isLoading = ref(false);
-
-const genres = ref([]);
-
-function getGenreName(id) {
-  const genero = genres.value.find((genre) => genre.id === id);
-  return genero.name;
-}
+const genreStore = useGenreStore();
+const router = useRouter()
 
 const formatDate = (date) => new Date(date).toLocaleDateString('pt-BR');
 
 onMounted(async () => {
-  const response = await api.get('genre/movie/list?language=pt-BR');
-  genres.value = response.data.genres;
+  isLoading.value = true;
+  await genreStore.getAllGenres('movie');
+  isLoading.value = false;
 });
 
 const movies = ref([]);
 
 const listMovies = async (genreId) => {
+  genreStore.setCurrentGenreId(genreId);
   isLoading.value = true;
   const response = await api.get('discover/movie', {
     params: {
       with_genres: genreId,
-      language: 'pt-BR'
-    }
+      language: 'pt-BR',
+    },
   });
-  movies.value = response.data.results
+  movies.value = response.data.results;
   isLoading.value = false;
 };
+
+function openMovie(movieId) {
+  router.push({ name: 'MovieDetails', params: { movieId } });
+}
 </script>
 
 <template>
@@ -39,14 +42,15 @@ const listMovies = async (genreId) => {
 
   <!-- lista de gêneros -->
   <ul class="genre-list">
-    <li
-      v-for="genre in genres"
-      :key="genre.id"
-      @click="listMovies(genre.id)"
-      class="genre-item"
-    >
-      {{ genre.name }}
-    </li>
+  <li
+    v-for="genre in genreStore.genres"
+    :key="genre.id"
+    @click="listMovies(genre.id)"
+    class="genre-item"
+    :class="{ active: genre.id === genreStore.currentGenreId }"
+  >
+    {{ genre.name }}
+  </li>
   </ul>
 
   <loading v-model:active="isLoading" is-full-page />
@@ -57,6 +61,7 @@ const listMovies = async (genreId) => {
       <img
         :src="`https://image.tmdb.org/t/p/w500${movie.poster_path}`"
         :alt="movie.title"
+        @click="openMovie(movie.id)"
       />
       <div class="movie-details">
         <p class="movie-title">{{ movie.title }}</p>
@@ -68,8 +73,9 @@ const listMovies = async (genreId) => {
             v-for="genre_id in movie.genre_ids"
             :key="genre_id"
             @click="listMovies(genre_id)"
+            :class="{ active: genre_id === genreStore.currentGenreId }"
           >
-            {{ getGenreName(genre_id) }}
+            {{ genreStore.getGenreName(genre_id) }}
           </span>
         </p>
       </div>
@@ -116,7 +122,7 @@ const listMovies = async (genreId) => {
   box-shadow: 0 0 0.5rem #000;
 }
 
-.movie-card:hover{
+.movie-card:hover {
   transform: scale(1.05);
   transition: all 0.3s ease-in-out;
   cursor: pointer;
@@ -163,5 +169,20 @@ const listMovies = async (genreId) => {
   cursor: pointer;
   background-color: #1d4e31;
   box-shadow: 0 0 0.5rem #63c48b;
+}
+
+.active {
+  background-color: #67b086;
+  font-weight: bolder;
+}
+
+.movie-genres span.active {
+  background-color: #1d4e31;
+  color: #000;
+  font-weight: bolder;
+}
+.movie-genres span.active:hover {
+  background-color: #387250;
+  box-shadow: 0 0 0.5rem #83e7ad;
 }
 </style>
