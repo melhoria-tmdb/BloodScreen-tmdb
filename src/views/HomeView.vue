@@ -2,7 +2,7 @@
     <div>
       <h1>Home</h1>
 
-      <h2 class="center-page">Há um segredo...</h2>
+      <h2 class="center-page">Au au...</h2>
     </div>
 </template>
 <style scoped>

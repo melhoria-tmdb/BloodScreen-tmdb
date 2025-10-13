@@ -19,7 +19,6 @@
     </div>
 
     <div class="controls">
-      <small>Você encontrou um segredo!</small><br>
       <small>Use ← →</small>
     </div>
   </div>
@@ -110,6 +109,17 @@ function movePaddle() {
   if (leftDown) paddle.x -= paddle.speed
   if (rightDown) paddle.x += paddle.speed
   paddle.x = Math.max(0, Math.min(canvasW - paddle.w, paddle.x))
+}
+
+function isLevelCleared(){
+  for (let c = 0; c < brickColCount; c++)
+  {
+    for (let r = 0; r < brickRowCount; r++)
+    {
+      if (bricks[c][r].status === 1) return false
+    }
+  }
+  return true
 }
 
 function collisionDetection() {
@@ -212,6 +222,22 @@ function loop() {
   movePaddle()
   updateBall()
   collisionDetection()
+
+  //verifica vitória de fase
+  if (isLevelCleared()) { cancelAnimationFrame(rafId)
+    ctx.fillStyle = 'rgba(0,0,0,0.6)'
+    ctx.fillRect(0, canvasH / 2 - 40, canvasW, 80)
+    ctx.fillStyle = '#fff'
+    ctx.font = '22px Arial'
+    ctx.textAlign = 'center'
+    ctx.fillText('🏆 Fase concluída!', canvasW / 2, canvasH / 2 + 8)
+
+    setTimeout(() =>
+    { resetAll()
+    rafId = requestAnimationFrame(loop)
+    }, 1000)
+
+   return }
 
   drawBricks()
   drawPaddle()
