@@ -77,7 +77,7 @@ function balada() {
   }
 }
 
-// ======== Resset ========
+// ======== Reset ========
 function resetCor() {
   const fundo = document.getElementById('balada-bg')
   const elementos = [

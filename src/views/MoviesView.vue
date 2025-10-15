@@ -2,86 +2,111 @@
 import { ref, onMounted } from 'vue';
 import api from '@/plugins/axios';
 import Loading from 'vue-loading-overlay';
-import { useGenreStore } from '@/stores/genre';
-import { useRouter } from 'vue-router'
+import { useRouter } from 'vue-router';
 
 const isLoading = ref(false);
-const genreStore = useGenreStore();
-const router = useRouter()
-
-const formatDate = (date) => new Date(date).toLocaleDateString('pt-BR');
-
-onMounted(async () => {
-  isLoading.value = true;
-  await genreStore.getAllGenres('movie');
-  isLoading.value = false;
-});
-
+const router = useRouter();
 const movies = ref([]);
+const currentSubgenre = ref(null);
 
-const listMovies = async (genreId) => {
-  genreStore.setCurrentGenreId(genreId);
-  isLoading.value = true;
-  const response = await api.get('discover/movie', {
-    params: {
-      with_genres: genreId,
-      language: 'pt-BR',
-    },
-  });
-  movies.value = response.data.results;
-  isLoading.value = false;
+// Subgêneros com várias keywords
+const subgenres = [
+  { id: null, name: 'Todos', keywords: [] },
+  { id: 'slasher', name: 'Slasher', keywords: [14904, 11196, 4565, 9717] },
+  { id: 'psychological', name: 'Psicológico', keywords: [9715, 9833, 33467, 180547] },
+  { id: 'zombie', name: 'Zumbi', keywords: [9713, 803, 15028, 155477] },
+  { id: 'supernatural', name: 'Sobrenatural', keywords: [34032, 9714, 34117, 180547] },
+  { id: 'gore', name: 'Gore', keywords: [12377, 22204, 12670, 18264] },
+];
+
+const listMovies = async (sub) => {
+  try {
+    isLoading.value = true;
+    movies.value = [];
+    currentSubgenre.value = sub?.id ?? null;
+
+    if (!sub || !Array.isArray(sub.keywords) || sub.keywords.length === 0) {
+      const resp = await api.get('discover/movie', {
+        params: { with_genres: '27', sort_by: 'popularity.desc', language: 'pt-BR', page: 1 },
+      });
+      movies.value = resp.data.results || [];
+      return;
+    }
+
+    // Para subgênero -> busca cada keyword separadamente
+    const responses = await Promise.all(
+      sub.keywords.map((kw) =>
+        api.get(`keyword/${kw}/movies`, { params: { language: 'pt-BR', page: 1 } })
+          .then(r => r.data.results || [])
+          .catch(() => [])
+      )
+    );
+
+    // Junta resultados, filtra terror e deduplica
+    const mapById = new Map();
+    for (const list of responses) {
+      for (const m of list) {
+        if (Array.isArray(m.genre_ids) && m.genre_ids.includes(27)) {
+          mapById.set(m.id, m);
+        }
+      }
+    }
+
+    movies.value = Array.from(mapById.values()).sort((a, b) => {
+      const da = a.release_date ? new Date(a.release_date).getTime() : 0;
+      const db = b.release_date ? new Date(b.release_date).getTime() : 0;
+      return db - da;
+    });
+
+  } catch (err) {
+    console.error(err);
+    movies.value = [];
+  } finally {
+    isLoading.value = false;
+  }
 };
 
-function openMovie(movieId) {
-  router.push({ name: 'MovieDetails', params: { movieId } });
-}
+onMounted(async () => {
+  await listMovies(subgenres[0]); // "Todos"
+});
 </script>
 
-<template>
-  <h1>Filmes</h1>
 
-  <!-- lista de gêneros -->
+<template>
+  <h1>Filmes de Terror</h1>
+
+  <!-- subgêneros -->
   <ul class="genre-list">
-  <li
-    v-for="genre in genreStore.genres"
-    :key="genre.id"
-    @click="listMovies(genre.id)"
-    class="genre-item"
-    :class="{ active: genre.id === genreStore.currentGenreId }"
-  >
-    {{ genre.name }}
-  </li>
+    <li
+      v-for="sub in subgenres"
+      :key="sub.id || 'all'"
+      @click="listMovies(sub)"
+      class="genre-item"
+      :class="{ active: sub.id === currentSubgenre }"
+    >
+      {{ sub.name }}
+    </li>
   </ul>
 
   <loading v-model:active="isLoading" is-full-page />
 
-  <!-- lista de filmes -->
   <div class="movie-list">
     <div v-for="movie in movies" :key="movie.id" class="movie-card">
       <img
         :src="`https://image.tmdb.org/t/p/w500${movie.poster_path}`"
         :alt="movie.title"
-        @click="openMovie(movie.id)"
+        @click="router.push({ name: 'MovieDetails', params: { movieId: movie.id } })"
       />
       <div class="movie-details">
         <p class="movie-title">{{ movie.title }}</p>
-        <p class="movie-release-date">{{ formatDate(movie.release_date) }}</p>
-
-        <!-- gêneros do filme -->
-        <p class="movie-genres">
-          <span
-            v-for="genre_id in movie.genre_ids"
-            :key="genre_id"
-            @click="listMovies(genre_id)"
-            :class="{ active: genre_id === genreStore.currentGenreId }"
-          >
-            {{ genreStore.getGenreName(genre_id) }}
-          </span>
+        <p class="movie-release-date">
+          {{ new Date(movie.release_date).toLocaleDateString('pt-BR') }}
         </p>
       </div>
     </div>
   </div>
 </template>
+
 
 <style scoped>
 .genre-list {
