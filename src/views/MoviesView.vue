@@ -12,11 +12,12 @@ const currentSubgenre = ref(null);
 // Subgêneros com várias keywords
 const subgenres = [
   { id: null, name: 'Todos', keywords: [] },
-  { id: 'slasher', name: 'Slasher', keywords: [14904, 11196, 4565, 9717] },
-  { id: 'psychological', name: 'Psicológico', keywords: [9715, 9833, 33467, 180547] },
-  { id: 'zombie', name: 'Zumbi', keywords: [9713, 803, 15028, 155477] },
-  { id: 'supernatural', name: 'Sobrenatural', keywords: [34032, 9714, 34117, 180547] },
-  { id: 'gore', name: 'Gore', keywords: [12377, 22204, 12670, 18264] },
+  { id: 'slasher', name: 'Slasher', keywords: [12339, 233450, 208318, 279729, 309061, 325665, 325992, 338102, 351863, 356262, 13209, 157758, 14676, 10714] },
+  { id: 'monster', name: 'Monstro', keywords: [12339, 233450, 208318, 279729, 309061, 325665, 325992] },
+  { id: 'psychological', name: 'Psicológico', keywords: [295907, 235847, 316790, 323295, 12565, 166701] },
+  { id: 'zombie', name: 'Zumbi', keywords: [8624, 12377, 186565, 9925, 304449, 310175, 312469, 357193, 4884] },
+  { id: 'supernatural', name: 'Sobrenatural', keywords: [344360, 162846, 351863, 166701] },
+  { id: 'gore', name: 'Gore', keywords: [10292, 351656, 157758] },
 ];
 
 const listMovies = async (sub) => {
