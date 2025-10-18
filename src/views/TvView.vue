@@ -2,80 +2,138 @@
 import { ref, onMounted } from 'vue';
 import api from '@/plugins/axios';
 import Loading from 'vue-loading-overlay';
-import { useGenreStore } from '@/stores/genre';
-import { useRouter } from 'vue-router'
+import { useRouter } from 'vue-router';
 
 const isLoading = ref(false);
-const genreStore = useGenreStore();
-const router = useRouter()
+const router = useRouter();
+const shows = ref([]);
+const currentSubgenre = ref(null);
 
-const formatDate = (date) => new Date(date).toLocaleDateString('pt-BR');
+// 🎬 Subgêneros com várias keywords
+const subgenres = [
+  { id: null, name: 'Todos', keywords: [] },
+  { id: 'slasher', name: 'Slasher', keywords: [12339, 233450, 208318, 279729, 309061, 325665, 325992, 338102, 351863, 356262, 13209, 157758, 14676, 10714] },
+  { id: 'monster', name: 'Monstro', keywords: [1299, 238534, 210614, 33696, 214881, 252343, 162536, 224587, 172136, 228939, 266782, 191143, 11100, 18193, 183787, 289108, 215790] },
+  { id: 'psychological', name: 'Psicológico', keywords: [295907, 235847, 316790, 323295, 12565, 166701, 240377] },
+  { id: 'zombie', name: 'Zumbi', keywords: [8624, 12377, 186565, 9925, 304449, 310175, 312469, 357193, 4884, 10349] },
+  { id: 'supernatural', name: 'Sobrenatural', keywords: [344360, 162846, 351863, 166701, 3358, 2626, 13153, 15043, 241827, 256183, 323566, 212661, 249694, 33630, 240377, 4720, 161270, 162745, 167890] },
+  { id: 'gore', name: 'Gore', keywords: [10292, 351656, 157758, 14546, 306196, 325798, 280075, 284439, 157676, 10714, 447] },
+];
 
-onMounted(async () => {
-  isLoading.value = true;
-  await genreStore.getAllGenres('tv');
-  isLoading.value = false;
-});
+// 🔥 Função para listar séries
+const listShows = async (sub) => {
+  try {
+    isLoading.value = true;
+    shows.value = [];
+    currentSubgenre.value = sub?.id ?? null;
 
-const tv = ref([]);
+    // 🧠 Caso "Todos" (sem keywords)
+    if (!sub || !Array.isArray(sub.keywords) || sub.keywords.length === 0) {
+      const allResults = [];
+      const totalPages = 5;
 
-const listTv = async (genreId) => {
-  genreStore.setCurrentGenreId(genreId);
-  isLoading.value = true;
-  const response = await api.get('discover/tv', {
-    params: {
-      with_genres: genreId,
-      language: 'pt-BR'
+      for (let page = 1; page <= totalPages; page++) {
+        const resp = await api.get('discover/tv', {
+          params: {
+            with_genres: '315058', // apenas terror
+            sort_by: 'popularity.desc',
+            language: 'pt-BR',
+            include_adult: false,
+            page,
+          },
+        });
+        allResults.push(...(resp.data.results || []));
+      }
+
+      const uniqueShows = Array.from(
+        new Map(allResults.map(s => [s.id, s])).values()
+      );
+
+      shows.value = uniqueShows
+        .filter(s => s.poster_path)
+        .sort((a, b) => {
+          const da = a.first_air_date ? new Date(a.first_air_date).getTime() : 0;
+          const db = b.first_air_date ? new Date(b.first_air_date).getTime() : 0;
+          return db - da;
+        });
+
+      return;
     }
-  });
-  tv.value = response.data.results
-  isLoading.value = false;
+
+    // 🧩 Para subgêneros com keywords
+    const responses = await Promise.all(
+      sub.keywords.map(kw =>
+        api
+          .get(`keyword/${kw}/tv`, { params: { language: 'pt-BR', page: 1 } })
+          .then(r => r.data.results || [])
+          .catch(() => [])
+      )
+    );
+
+    // Junta resultados, filtra terror e deduplica
+    const mapById = new Map();
+    for (const list of responses) {
+      for (const s of list) {
+        if (Array.isArray(s.genre_ids) && s.genre_ids.includes(27)) {
+          mapById.set(s.id, s);
+        }
+      }
+    }
+
+    shows.value = Array.from(mapById.values())
+      .filter(s => s.poster_path)
+      .sort((a, b) => {
+        const da = a.first_air_date ? new Date(a.first_air_date).getTime() : 0;
+        const db = b.first_air_date ? new Date(b.first_air_date).getTime() : 0;
+        return db - da;
+      });
+
+  } catch (err) {
+    console.error('Erro listShows:', err);
+    shows.value = [];
+  } finally {
+    isLoading.value = false;
+  }
 };
 
 function openShow(showId) {
   router.push({ name: 'ShowDetails', params: { showId } });
 }
+
+onMounted(async () => {
+  await listShows(subgenres[0]); // "Todos"
+});
 </script>
 
 <template>
-  <h1>Programas de TV</h1>
+  <h1>Séries de Terror</h1>
+
+  <!-- subgêneros -->
   <ul class="genre-list">
-  <li
-    v-for="genre in genreStore.genres"
-    :key="genre.id"
-    @click="listTv(genre.id)"
-    class="genre-item"
-    :class="{ active: genre.id === genreStore.currentGenreId }"
+    <li
+      v-for="sub in subgenres"
+      :key="sub.id || 'all'"
+      @click="listShows(sub)"
+      class="genre-item"
+      :class="{ active: sub.id === currentSubgenre }"
     >
-    {{ genre.name }}
+      {{ sub.name }}
     </li>
   </ul>
 
   <loading v-model:active="isLoading" is-full-page />
 
   <div class="show-list">
-    <div v-for="show in tv" :key="show.id" class="show-card">
-
+    <div v-for="show in shows" :key="show.id" class="show-card">
       <img
         :src="`https://image.tmdb.org/t/p/w500${show.poster_path}`"
-        :alt="show.title"
+        :alt="show.name"
         @click="openShow(show.id)"
       />
-
       <div class="show-details">
         <p class="show-title">{{ show.name }}</p>
-        <p class="show-release-date">{{ formatDate(show.first_air_date) }}</p>
-
-        <!-- gêneros do show -->
-        <p class="show-genres">
-          <span
-            v-for="genre_id in show.genre_ids"
-            :key="genre_id"
-            @click="listTv(genre_id)"
-            :class="{ active: genre_id === genreStore.currentGenreId }"
-          >
-            {{ genreStore.getGenreName(genre_id) }}
-          </span>
+        <p class="show-release-date">
+          {{ new Date(show.first_air_date).toLocaleDateString('pt-BR') }}
         </p>
       </div>
     </div>
@@ -87,25 +145,36 @@ function openShow(showId) {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 2rem;
+  gap: 1rem;
   list-style: none;
-  padding: 0.8vw;
+  padding: 0.5rem;
+  margin-top: 1.5rem;
 }
 
 .genre-item {
-  background-color: #5d6424;
+  background-color: #7a0b0b;
   border-radius: 1rem;
-  padding: 0.5rem 1rem;
-  align-self: center;
+  padding: 0.5rem 1.2rem;
   color: #fff;
-  display: flex;
-  justify-content: center;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 0.3rem rgba(0, 0, 0, 0.4);
 }
 
 .genre-item:hover {
   cursor: pointer;
-  background-color: #7d8a2e;
-  box-shadow: 0 0 0.5rem #5d6424;
+  background-color: #a31313;
+  box-shadow: 0 0 0.8rem #ff2a2a;
+  transform: translateY(-2px);
+}
+
+.genre-item.active {
+  background-color: #c71616;
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 0 1rem #ff4747;
+  transform: scale(1.08);
+  border: 2px solid #fff;
 }
 
 .show-list {
@@ -119,69 +188,58 @@ function openShow(showId) {
 .show-card {
   width: 15rem;
   height: 30rem;
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   overflow: hidden;
-  box-shadow: 0 0 0.5rem #000;
+  background-color: #111;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .show-card:hover {
-  transform: scale(1.05);
-  transition: all 0.3s ease-in-out;
+  transform: scale(1.04);
+  box-shadow: 0 6px 20px rgba(255, 0, 0, 0.25);
   cursor: pointer;
 }
 
 .show-card img {
   width: 100%;
-  height: 20rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 0 0.5rem #000;
+  height: 21rem;
+  object-fit: cover;
+  border-bottom: 2px solid #220000;
 }
 
 .show-details {
-  padding: 0 0.5rem;
+  flex: 1;
+  width: 100%;
+  padding: 0.7rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
 }
 
 .show-title {
-  font-size: 1.1rem;
-  font-weight: bold;
-  line-height: 1.3rem;
-  height: 3.2rem;
-}
-
-.show-genres {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 0.2rem;
-  margin-top: 0.5vw;
-}
-
-.show-genres span {
-  background-color: #748708;
-  border-radius: 0.5rem;
-  padding: 0.2rem 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
   color: #fff;
-  font-size: 0.8rem;
-  font-weight: bold;
+  text-align: center;
+  line-height: 1.3rem;
+  margin-bottom: 0.4rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
-.show-genres span:hover {
-  cursor: pointer;
-  background-color: #455a08;
-  box-shadow: 0 0 0.5rem #748708;
+.show-release-date {
+  font-size: 0.85rem;
+  color: #bfbfbf;
+  margin-top: 0.2rem;
+  margin-bottom: 0.5rem;
 }
-
-.active {
-  background-color: #8ea029;
-  font-weight: bolder;
-}
-
-.show-genres span.active {
-  background-color: #abc322;
-  color: #000;
-  font-weight: bolder;
-}
-
 </style>
