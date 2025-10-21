@@ -11,7 +11,7 @@ const currentSubgenre = ref(null);
 
 // 🎬 Subgêneros com várias keywords
 const subgenres = [
-  { id: null, name: 'Todos', keywords: [] },
+  { id: null, name: 'Todos', keywords: [] }, // "Horror"
   { id: 'slasher', name: 'Slasher', keywords: [12339, 233450, 208318, 279729, 309061, 325665, 325992, 338102, 351863, 356262, 13209, 157758, 14676, 10714] },
   { id: 'monster', name: 'Monstro', keywords: [1299, 238534, 210614, 33696, 214881, 252343, 162536, 224587, 172136, 228939, 266782, 191143, 11100, 18193, 183787, 289108, 215790] },
   { id: 'psychological', name: 'Psicológico', keywords: [295907, 235847, 316790, 323295, 12565, 166701, 240377] },
@@ -27,67 +27,37 @@ const listShows = async (sub) => {
     shows.value = [];
     currentSubgenre.value = sub?.id ?? null;
 
-    // 🧠 Caso "Todos" (sem keywords)
-    if (!sub || !Array.isArray(sub.keywords) || sub.keywords.length === 0) {
-      const allResults = [];
-      const totalPages = 5;
+    const keywords = sub?.keywords?.length ? sub.keywords.join(',') : '315058';
+    const allResults = [];
+    const totalPages = 5;
 
-      for (let page = 1; page <= totalPages; page++) {
-        const resp = await api.get('discover/tv', {
-          params: {
-            with_genres: '315058', // apenas terror
-            sort_by: 'popularity.desc',
-            language: 'pt-BR',
-            include_adult: false,
-            page,
-          },
-        });
-        allResults.push(...(resp.data.results || []));
-      }
-
-      const uniqueShows = Array.from(
-        new Map(allResults.map(s => [s.id, s])).values()
-      );
-
-      shows.value = uniqueShows
-        .filter(s => s.poster_path)
-        .sort((a, b) => {
-          const da = a.first_air_date ? new Date(a.first_air_date).getTime() : 0;
-          const db = b.first_air_date ? new Date(b.first_air_date).getTime() : 0;
-          return db - da;
-        });
-
-      return;
+    // 🔍 Faz a busca usando discover/tv (correto para séries)
+    for (let page = 1; page <= totalPages; page++) {
+      const resp = await api.get('discover/tv', {
+        params: {
+          with_keywords: keywords,
+          language: 'pt-BR',
+          sort_by: 'popularity.desc',
+          include_adult: false,
+          page,
+        },
+      });
+      allResults.push(...(resp.data.results || []));
     }
 
-    // 🧩 Para subgêneros com keywords
-    const responses = await Promise.all(
-      sub.keywords.map(kw =>
-        api
-          .get(`keyword/${kw}/tv`, { params: { language: 'pt-BR', page: 1 } })
-          .then(r => r.data.results || [])
-          .catch(() => [])
-      )
+    // 🔄 Remove duplicatas
+    const uniqueShows = Array.from(
+      new Map(allResults.map(s => [s.id, s])).values()
     );
 
-    // Junta resultados, filtra terror e deduplica
-    const mapById = new Map();
-    for (const list of responses) {
-      for (const s of list) {
-        if (Array.isArray(s.genre_ids) && s.genre_ids.includes(27)) {
-          mapById.set(s.id, s);
-        }
-      }
-    }
-
-    shows.value = Array.from(mapById.values())
+    // 📅 Ordena por data de lançamento
+    shows.value = uniqueShows
       .filter(s => s.poster_path)
       .sort((a, b) => {
         const da = a.first_air_date ? new Date(a.first_air_date).getTime() : 0;
         const db = b.first_air_date ? new Date(b.first_air_date).getTime() : 0;
         return db - da;
       });
-
   } catch (err) {
     console.error('Erro listShows:', err);
     shows.value = [];
@@ -100,23 +70,20 @@ function openShow(showId) {
   router.push({ name: 'ShowDetails', params: { showId } });
 }
 
+// 🚀 Carrega automaticamente o gênero "Todos" ao abrir a página
 onMounted(async () => {
-  await listShows(subgenres[0]); // "Todos"
+  await listShows(subgenres[0]);
 });
 </script>
+
 
 <template>
   <h1>Séries de Terror</h1>
 
   <!-- subgêneros -->
   <ul class="genre-list">
-    <li
-      v-for="sub in subgenres"
-      :key="sub.id || 'all'"
-      @click="listShows(sub)"
-      class="genre-item"
-      :class="{ active: sub.id === currentSubgenre }"
-    >
+    <li v-for="sub in subgenres" :key="sub.id || 'all'" @click="listShows(sub)" class="genre-item"
+      :class="{ active: sub.id === currentSubgenre }">
       {{ sub.name }}
     </li>
   </ul>
@@ -125,11 +92,7 @@ onMounted(async () => {
 
   <div class="show-list">
     <div v-for="show in shows" :key="show.id" class="show-card">
-      <img
-        :src="`https://image.tmdb.org/t/p/w500${show.poster_path}`"
-        :alt="show.name"
-        @click="openShow(show.id)"
-      />
+      <img :src="`https://image.tmdb.org/t/p/w500${show.poster_path}`" :alt="show.name" @click="openShow(show.id)" />
       <div class="show-details">
         <p class="show-title">{{ show.name }}</p>
         <p class="show-release-date">
