@@ -18,6 +18,7 @@ const subgenres = [
   { id: 'zombie', name: 'Zumbi', keywords: [8624, 12377, 186565, 9925, 304449, 310175, 312469, 357193, 4884, 10349] },
   { id: 'supernatural', name: 'Sobrenatural', keywords: [344360, 162846, 351863, 166701, 3358, 2626, 13153, 15043, 241827, 256183, 323566, 212661, 249694, 33630, 240377, 4720, 161270, 162745, 167890] },
   { id: 'gore', name: 'Gore', keywords: [10292, 351656, 157758, 14546, 306196, 325798, 280075, 284439, 157676, 10714, 447] },
+  { id: 'found_footage', name: 'Found Footage', keywords: [163053, 319819, 340385, 342857, 345179] },
 ];
 
 const listMovies = async (sub) => {
@@ -29,7 +30,7 @@ const listMovies = async (sub) => {
     // 🧠 Caso "Todos" (sem keywords)
     if (!sub || !Array.isArray(sub.keywords) || sub.keywords.length === 0) {
       const allResults = [];
-      const totalPages = 5; // 🔁 busca mais páginas para pegar mais filmes
+      const totalPages = 6; // 🔁 busca mais páginas para pegar mais filmes
 
       for (let page = 1; page <= totalPages; page++) {
         const resp = await api.get('discover/movie', {
