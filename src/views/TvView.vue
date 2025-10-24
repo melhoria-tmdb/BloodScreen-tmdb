@@ -9,15 +9,15 @@ const router = useRouter();
 const shows = ref([]);
 const currentSubgenre = ref(null);
 
-// 🎬 Subgêneros com várias keywords
+// 🎬 Subgêneros com várias keywords (sem filtro fixo "horror")
 const subgenres = [
-  { id: null, name: 'Todos', keywords: [] }, // "Horror"
+  { id: null, name: 'Todos', keywords: [] },
   { id: 'slasher', name: 'Slasher', keywords: [12339, 233450, 208318, 279729, 309061, 325665, 325992, 338102, 351863, 356262, 13209, 157758, 14676, 10714] },
   { id: 'monster', name: 'Monstro', keywords: [1299, 238534, 210614, 33696, 214881, 252343, 162536, 224587, 172136, 228939, 266782, 191143, 11100, 18193, 183787, 289108, 215790] },
   { id: 'psychological', name: 'Psicológico', keywords: [295907, 235847, 316790, 323295, 12565, 166701, 240377] },
-  { id: 'zombie', name: 'Zumbi', keywords: [8624, 12377, 186565, 9925, 304449, 310175, 312469, 357193, 4884, 10349] },
-  { id: 'supernatural', name: 'Sobrenatural', keywords: [344360, 162846, 351863, 166701, 3358, 2626, 13153, 15043, 241827, 256183, 323566, 212661, 249694, 33630, 240377, 4720, 161270, 162745, 167890] },
-  { id: 'gore', name: 'Gore', keywords: [10292, 351656, 157758, 14546, 306196, 325798, 280075, 284439, 157676, 10714, 447] },
+  { id: 'zombie', name: 'Zumbi', keywords: [12377, 186565] },
+  { id: 'supernatural', name: 'Sobrenatural', keywords: [9853, 172808, 161261, 251874, 256183] },
+  { id: 'gore', name: 'Gore', keywords: [10292, 351656] },
 ];
 
 // 🔥 Função para listar séries
@@ -27,32 +27,51 @@ const listShows = async (sub) => {
     shows.value = [];
     currentSubgenre.value = sub?.id ?? null;
 
-    const keywords = sub?.keywords?.length ? sub.keywords.join(',') : '315058';
+    const totalPages = 3;
     const allResults = [];
-    const totalPages = 5;
 
-    // 🔍 Faz a busca usando discover/tv (correto para séries)
-    for (let page = 1; page <= totalPages; page++) {
-      const resp = await api.get('discover/tv', {
-        params: {
-          with_keywords: keywords,
-          language: 'pt-BR',
-          sort_by: 'popularity.desc',
-          include_adult: false,
-          page,
-        },
-      });
-      allResults.push(...(resp.data.results || []));
+    // Caso "Todos" → pega séries populares
+    if (!sub || !Array.isArray(sub.keywords) || sub.keywords.length === 0) {
+      for (let page = 1; page <= totalPages; page++) {
+        const resp = await api.get('discover/tv', {
+          params: {
+            language: 'pt-BR',
+            sort_by: 'popularity.desc',
+            include_adult: false,
+            page,
+          },
+        });
+        allResults.push(...(resp.data.results || []));
+      }
+    } 
+    // Subgêneros → busca por cada keyword separadamente
+    else {
+      const responses = await Promise.all(
+        sub.keywords.map((kw) =>
+          api
+            .get('discover/tv', {
+              params: {
+                with_keywords: kw,
+                language: 'pt-BR',
+                sort_by: 'popularity.desc',
+                include_adult: false,
+                page: 1,
+              },
+            })
+            .then((r) => r.data.results || [])
+            .catch(() => [])
+        )
+      );
+
+      for (const list of responses) allResults.push(...list);
     }
 
     // 🔄 Remove duplicatas
-    const uniqueShows = Array.from(
-      new Map(allResults.map(s => [s.id, s])).values()
-    );
+    const uniqueShows = Array.from(new Map(allResults.map((s) => [s.id, s])).values());
 
-    // 📅 Ordena por data de lançamento
+    // 🔥 Filtra séries com poster e ordena
     shows.value = uniqueShows
-      .filter(s => s.poster_path)
+      .filter((s) => s.poster_path)
       .sort((a, b) => {
         const da = a.first_air_date ? new Date(a.first_air_date).getTime() : 0;
         const db = b.first_air_date ? new Date(b.first_air_date).getTime() : 0;
@@ -70,7 +89,7 @@ function openShow(showId) {
   router.push({ name: 'ShowDetails', params: { showId } });
 }
 
-// 🚀 Carrega automaticamente o gênero "Todos" ao abrir a página
+// 🚀 Carrega automaticamente o gênero "Todos"
 onMounted(async () => {
   await listShows(subgenres[0]);
 });
@@ -80,19 +99,29 @@ onMounted(async () => {
 <template>
   <h1>Séries de Terror</h1>
 
-  <!-- subgêneros -->
+  <!-- Subgêneros -->
   <ul class="genre-list">
-    <li v-for="sub in subgenres" :key="sub.id || 'all'" @click="listShows(sub)" class="genre-item"
-      :class="{ active: sub.id === currentSubgenre }">
+    <li
+      v-for="sub in subgenres"
+      :key="sub.id || 'all'"
+      @click="listShows(sub)"
+      class="genre-item"
+      :class="{ active: sub.id === currentSubgenre }"
+    >
       {{ sub.name }}
     </li>
   </ul>
 
   <loading v-model:active="isLoading" is-full-page />
 
+  <!-- Lista -->
   <div class="show-list">
     <div v-for="show in shows" :key="show.id" class="show-card">
-      <img :src="`https://image.tmdb.org/t/p/w500${show.poster_path}`" :alt="show.name" @click="openShow(show.id)" />
+      <img
+        :src="`https://image.tmdb.org/t/p/w500${show.poster_path}`"
+        :alt="show.name"
+        @click="openShow(show.id)"
+      />
       <div class="show-details">
         <p class="show-title">{{ show.name }}</p>
         <p class="show-release-date">
@@ -102,6 +131,7 @@ onMounted(async () => {
     </div>
   </div>
 </template>
+
 
 <style scoped>
 .genre-list {
