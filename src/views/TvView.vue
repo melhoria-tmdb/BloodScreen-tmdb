@@ -11,7 +11,7 @@ const currentSubgenre = ref(null);
 
 // 🎬 Subgêneros com várias keywords (sem filtro fixo "horror")
 const subgenres = [
-  { id: null, name: 'Todos', keywords: [] },
+  { id: null, name: 'Todos', keywords: [12339, 233450, 208318, 279729, 309061, 325665, 325992, 338102, 351863, 356262, 13209, 157758, 14676, 10714, 12339, 233450, 208318, 279729, 309061, 325665, 325992, 338102, 351863, 356262, 13209, 157758, 14676, 10714, 1299, 238534, 210614, 33696, 214881, 252343, 162536, 224587, 172136, 228939, 266782, 191143, 11100, 18193, 183787, 289108, 215790, 295907, 235847, 316790, 323295, 12565, 166701, 240377, 12377, 186565, 9853, 172808, 161261, 251874, 256183, 10292, 351656] },
   { id: 'slasher', name: 'Slasher', keywords: [12339, 233450, 208318, 279729, 309061, 325665, 325992, 338102, 351863, 356262, 13209, 157758, 14676, 10714] },
   { id: 'monster', name: 'Monstro', keywords: [1299, 238534, 210614, 33696, 214881, 252343, 162536, 224587, 172136, 228939, 266782, 191143, 11100, 18193, 183787, 289108, 215790] },
   { id: 'psychological', name: 'Psicológico', keywords: [295907, 235847, 316790, 323295, 12565, 166701, 240377] },
@@ -43,7 +43,7 @@ const listShows = async (sub) => {
         });
         allResults.push(...(resp.data.results || []));
       }
-    } 
+    }
     // Subgêneros → busca por cada keyword separadamente
     else {
       const responses = await Promise.all(
