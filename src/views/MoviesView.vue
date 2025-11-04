@@ -193,8 +193,6 @@ onMounted(async () => {
 });
 </script>
 
-
-
 <template>
    <div id="top">
     <h1>Filmes de Terror</h1>

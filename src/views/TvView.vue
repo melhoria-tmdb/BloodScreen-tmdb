@@ -9,6 +9,96 @@ const router = useRouter();
 const shows = ref([]);
 const currentSubgenre = ref(null);
 
+const query = ref('')
+
+const suggestions = ref([])
+const showSuggestions = ref(false)
+let searchTimeout = null
+
+const searchShow = async () => {
+  if (!query.value.trim()) return
+
+  try {
+    isLoading.value = true
+    const res = await api.get('/search/tv', {
+      params: {
+        query: query.value,
+        include_adult: false,
+        language: 'pt-BR',
+      },
+    })
+
+    const results = res.data.results || []
+
+    if (results.length > 0) {
+      const normalizedQuery = query.value.toLowerCase().trim()
+
+      // tenta achar correspondência exata (sem acentos)
+      const exactMatch = results.find(
+        (s) =>
+          s.name.toLowerCase() === normalizedQuery ||
+          s.name.toLowerCase().includes(normalizedQuery)
+      )
+
+      const chosen = exactMatch || results[0]
+      const tvId = chosen.id
+
+      router.push({ name: 'SerieDetails', params: { tvId } })
+    } else {
+      alert('Nenhuma série encontrada 😢')
+    }
+  } catch (err) {
+    console.error('Erro na pesquisa:', err)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// dispara busca enquanto o usuário digita
+const handleInput = () => {
+  clearTimeout(searchTimeout)
+  if (!query.value.trim()) {
+    suggestions.value = []
+    showSuggestions.value = false
+    return
+  }
+
+  searchTimeout = setTimeout(fetchSuggestions, 400) // debounce
+}
+
+const fetchSuggestions = async () => {
+  try {
+    const res = await api.get('/search/tv', {
+      params: {
+        query: query.value,
+        include_adult: false,
+        language: 'pt-BR',
+      },
+    })
+
+    // mostra até 10 sugestões (sem filtro de gênero)
+    suggestions.value = (res.data.results || [])
+      .filter((s) => s.poster_path)
+      .slice(0, 10)
+
+    showSuggestions.value = suggestions.value.length > 0
+  } catch (err) {
+    console.error('Erro ao buscar sugestões:', err)
+  }
+}
+
+const selectSuggestion = (show) => {
+  query.value = show.name
+  showSuggestions.value = false
+  router.push({ name: 'SerieDetails', params: { tvId: show.id } })
+}
+
+
+
+// 🧠 Keywords principais do TMDB relacionadas a terror
+const horrorKeywords = '12339, 233450, 208318, 279729, 309061, 325665, 325992, 338102, 351863, 356262, 13209, 157758, 14676, 10714, 12339, 233450, 208318, 279729, 309061, 325665, 325992, 338102, 351863, 356262, 13209, 157758, 14676, 10714, 1299, 238534, 210614, 33696, 214881, 252343, 162536, 224587, 172136, 228939, 266782, 191143, 11100, 18193, 183787, 289108, 215790, 295907, 235847, 316790, 323295, 12565, 166701, 240377, 12377, 186565, 9853, 172808, 161261, 251874, 256183, 10292, 351656'
+
+
 // 🎬 Subgêneros com várias keywords (sem filtro fixo "horror")
 const subgenres = [
   { id: null, name: 'Todos', keywords: [12339, 233450, 208318, 279729, 309061, 325665, 325992, 338102, 351863, 356262, 13209, 157758, 14676, 10714, 12339, 233450, 208318, 279729, 309061, 325665, 325992, 338102, 351863, 356262, 13209, 157758, 14676, 10714, 1299, 238534, 210614, 33696, 214881, 252343, 162536, 224587, 172136, 228939, 266782, 191143, 11100, 18193, 183787, 289108, 215790, 295907, 235847, 316790, 323295, 12565, 166701, 240377, 12377, 186565, 9853, 172808, 161261, 251874, 256183, 10292, 351656] },
@@ -89,7 +179,6 @@ function openShow(showId) {
   router.push({ name: 'ShowDetails', params: { showId } });
 }
 
-// 🚀 Carrega automaticamente o gênero "Todos"
 onMounted(async () => {
   await listShows(subgenres[0]);
 });
@@ -97,12 +186,39 @@ onMounted(async () => {
 
 
 <template>
+  <div id="top">
   <h1>Séries de Terror</h1>
+  <div class="input-wrap">
+  <input
+    type="text"
+    v-model="query"
+    @input="handleInput"
+    @keyup.enter="searchShow"
+    placeholder="Pesquisar em séries..."
+    class="pesquisa"
+    @focus="showSuggestions = suggestions.length > 0"
+    @blur="setTimeout(() => (showSuggestions = false), 150)"
+  />
+  <i class="mdi mdi-magnify" @click="searchShow"></i>
+
+  <ul v-if="showSuggestions" class="suggestion-list">
+    <li
+      v-for="s in suggestions"
+      :key="s.id"
+      @click="selectSuggestion(s)"
+      class="suggestion-item"
+    >
+      <img :src="`https://image.tmdb.org/t/p/w92${s.poster_path}`" />
+      <span>{{ s.name }}</span>
+    </li>
+  </ul>
+</div>
+</div>
 
   <!-- Subgêneros -->
   <ul class="genre-list">
     <li
-      v-for="sub in subgenres"
+      v-for="sub in subgenres"  
       :key="sub.id || 'all'"
       @click="listShows(sub)"
       class="genre-item"
@@ -134,6 +250,12 @@ onMounted(async () => {
 
 
 <style scoped>
+#top {
+  display: flex;
+  justify-content: space-between;
+  padding: 2vw;
+  align-items: center;
+}
 .genre-list {
   display: flex;
   justify-content: center;
@@ -234,5 +356,82 @@ onMounted(async () => {
   color: #bfbfbf;
   margin-top: 0.2rem;
   margin-bottom: 0.5rem;
+}
+
+/* PESQUISA */
+.input-wrap {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  max-width: 400px; /* limite opcional — pode aumentar ou remover */
+}
+
+.input-wrap i {
+  position: absolute;
+  right: 5%;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #666;
+  font-size: 20px;
+}
+
+.pesquisa {
+  width: 100%; /* faz o input se ajustar ao .input-wrap */
+  padding: 10px 40px 10px 15px; /* espaço extra à direita pro ícone */
+  height: 40px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 16px;
+}
+.pesquisa:focus {
+  outline: none;
+  border-color: transparent;
+  box-shadow: none;
+}
+.pesquisa:focus-visible {
+  outline: 2px solid transparent;
+}
+.suggestion-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 0.5rem;
+  margin-top: 4px;
+  list-style: none;
+  padding: 0;
+  z-index: 10;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+
+  /* 🧭 Adiciona rolagem */
+  max-height: 300px; /* altura máxima visível */
+  overflow-y: auto; /* ativa scroll vertical */
+
+  /* Opcional: scroll suave e estilizado */
+  scrollbar-width: thin;
+  scrollbar-color: #7a0b0b #111;
+}
+
+.suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.suggestion-item:hover {
+  background: #7a0b0b;
+}
+
+.suggestion-item img {
+  width: 40px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 4px;
 }
 </style>
