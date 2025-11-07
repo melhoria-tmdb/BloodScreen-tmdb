@@ -9,63 +9,81 @@ const router = useRouter();
 const shows = ref([]);
 const currentSubgenre = ref(null);
 
-const query = ref('')
+const query = ref('');
+const suggestions = ref([]);
+const showSuggestions = ref(false);
+let searchTimeout = null;
 
-const suggestions = ref([])
-const showSuggestions = ref(false)
-let searchTimeout = null
+// 🔥 Verifica se a série possui keywords de terror
+const isHorrorShow = async (tvId) => {
+  try {
+    const res = await api.get(`/tv/${tvId}`, {
+      params: { language: 'pt-BR' },
+    });
+    const keywordsRes = await api.get(`/tv/${tvId}/keywords`);
+    const keywords = keywordsRes.data.results?.map((k) => k.id) || [];
+    return keywords.some((id) => horrorKeywordList.includes(id));
+  } catch (err) {
+    console.error('Erro ao verificar série de terror:', err);
+    return false;
+  }
+};
 
+// 🔍 Pesquisa principal (ao apertar Enter)
 const searchShow = async () => {
-  if (!query.value.trim()) return
+  if (!query.value.trim()) return;
 
   try {
-    isLoading.value = true
+    isLoading.value = true;
+
     const res = await api.get('/search/tv', {
       params: {
         query: query.value,
         include_adult: false,
         language: 'pt-BR',
       },
-    })
+    });
 
-    const results = res.data.results || []
+    const results = res.data.results || [];
+    if (results.length === 0) {
+      alert('Nenhuma série encontrada 😢');
+      return;
+    }
 
-    if (results.length > 0) {
-      const normalizedQuery = query.value.toLowerCase().trim()
-
-      // tenta achar correspondência exata (sem acentos)
-      const exactMatch = results.find(
-        (s) =>
-          s.name.toLowerCase() === normalizedQuery ||
-          s.name.toLowerCase().includes(normalizedQuery)
+    // 🔥 Filtra apenas séries de terror
+    const checks = await Promise.all(
+      results.slice(0, 10).map(async (show) =>
+        (await isHorrorShow(show.id)) ? show : null
       )
+    );
 
-      const chosen = exactMatch || results[0]
-      const tvId = chosen.id
+    const filtered = checks.filter(Boolean);
 
-      router.push({ name: 'SerieDetails', params: { tvId } })
+    if (filtered.length > 0) {
+      const chosen = filtered[0];
+      router.push({ name: 'ShowDetails', params: { tvId: chosen.id } });
     } else {
-      alert('Nenhuma série encontrada 😢')
+      alert('Nenhuma série de terror encontrada 😢');
     }
   } catch (err) {
-    console.error('Erro na pesquisa:', err)
+    console.error('Erro na pesquisa:', err);
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
-}
+};
 
-// dispara busca enquanto o usuário digita
+// 🧠 Sugestões enquanto o usuário digita
 const handleInput = () => {
-  clearTimeout(searchTimeout)
+  clearTimeout(searchTimeout);
   if (!query.value.trim()) {
-    suggestions.value = []
-    showSuggestions.value = false
-    return
+    suggestions.value = [];
+    showSuggestions.value = false;
+    return;
   }
+  searchTimeout = setTimeout(fetchSuggestions, 400);
+};
 
-  searchTimeout = setTimeout(fetchSuggestions, 400) // debounce
-}
-
+// 🩸 Busca sugestões roláveis e relevantes
 const fetchSuggestions = async () => {
   try {
     const res = await api.get('/search/tv', {
@@ -74,34 +92,47 @@ const fetchSuggestions = async () => {
         include_adult: false,
         language: 'pt-BR',
       },
-    })
+    });
 
-    // mostra até 10 sugestões (sem filtro de gênero)
-    suggestions.value = (res.data.results || [])
-      .filter((s) => s.poster_path)
-      .slice(0, 10)
+    const results = res.data.results || [];
 
-    showSuggestions.value = suggestions.value.length > 0
+    // 🔥 Verifica se as séries têm relação com terror
+    const checks = await Promise.all(
+      results.slice(0, 15).map(async (show) =>
+        (await isHorrorShow(show.id)) ? show : null
+      )
+    );
+
+    // 🩸 Exibe até 10 sugestões roláveis e com poster
+    suggestions.value = checks
+      .filter((s) => s && s.poster_path)
+      .slice(0, 10);
+
+    showSuggestions.value = suggestions.value.length > 0;
   } catch (err) {
-    console.error('Erro ao buscar sugestões:', err)
+    console.error('Erro ao buscar sugestões:', err);
   }
-}
+};
 
+// 🎯 Ao clicar em uma sugestão
 const selectSuggestion = (show) => {
-  query.value = show.name
-  showSuggestions.value = false
-  router.push({ name: 'SerieDetails', params: { tvId: show.id } })
-}
+  query.value = show.name;
+  showSuggestions.value = false;
+  router.push({ name: 'ShowDetails', params: { showId: show.id } });
+};
 
+// 🧠 Keywords principais de terror (TMDB)
+const horrorKeywordList = [
+  12339, 233450, 208318, 279729, 309061, 325665, 325992, 338102, 351863,
+  356262, 13209, 157758, 14676, 10714, 1299, 238534, 210614, 33696, 214881,
+  252343, 162536, 224587, 172136, 228939, 266782, 191143, 11100, 18193,
+  183787, 289108, 215790, 295907, 235847, 316790, 323295, 12565, 166701,
+  240377, 12377, 186565, 9853, 172808, 161261, 251874, 256183, 10292, 351656,
+];
 
-
-// 🧠 Keywords principais do TMDB relacionadas a terror
-const horrorKeywords = '12339, 233450, 208318, 279729, 309061, 325665, 325992, 338102, 351863, 356262, 13209, 157758, 14676, 10714, 12339, 233450, 208318, 279729, 309061, 325665, 325992, 338102, 351863, 356262, 13209, 157758, 14676, 10714, 1299, 238534, 210614, 33696, 214881, 252343, 162536, 224587, 172136, 228939, 266782, 191143, 11100, 18193, 183787, 289108, 215790, 295907, 235847, 316790, 323295, 12565, 166701, 240377, 12377, 186565, 9853, 172808, 161261, 251874, 256183, 10292, 351656'
-
-
-// 🎬 Subgêneros com várias keywords (sem filtro fixo "horror")
+// 🎬 Subgêneros com várias keywords
 const subgenres = [
-  { id: null, name: 'Todos', keywords: [12339, 233450, 208318, 279729, 309061, 325665, 325992, 338102, 351863, 356262, 13209, 157758, 14676, 10714, 12339, 233450, 208318, 279729, 309061, 325665, 325992, 338102, 351863, 356262, 13209, 157758, 14676, 10714, 1299, 238534, 210614, 33696, 214881, 252343, 162536, 224587, 172136, 228939, 266782, 191143, 11100, 18193, 183787, 289108, 215790, 295907, 235847, 316790, 323295, 12565, 166701, 240377, 12377, 186565, 9853, 172808, 161261, 251874, 256183, 10292, 351656] },
+  { id: null, name: 'Todos', keywords: horrorKeywordList },
   { id: 'slasher', name: 'Slasher', keywords: [12339, 233450, 208318, 279729, 309061, 325665, 325992, 338102, 351863, 356262, 13209, 157758, 14676, 10714] },
   { id: 'monster', name: 'Monstro', keywords: [1299, 238534, 210614, 33696, 214881, 252343, 162536, 224587, 172136, 228939, 266782, 191143, 11100, 18193, 183787, 289108, 215790] },
   { id: 'psychological', name: 'Psicológico', keywords: [295907, 235847, 316790, 323295, 12565, 166701, 240377] },
@@ -120,7 +151,6 @@ const listShows = async (sub) => {
     const totalPages = 3;
     const allResults = [];
 
-    // Caso "Todos" → pega séries populares
     if (!sub || !Array.isArray(sub.keywords) || sub.keywords.length === 0) {
       for (let page = 1; page <= totalPages; page++) {
         const resp = await api.get('discover/tv', {
@@ -133,9 +163,7 @@ const listShows = async (sub) => {
         });
         allResults.push(...(resp.data.results || []));
       }
-    }
-    // Subgêneros → busca por cada keyword separadamente
-    else {
+    } else {
       const responses = await Promise.all(
         sub.keywords.map((kw) =>
           api
@@ -152,14 +180,11 @@ const listShows = async (sub) => {
             .catch(() => [])
         )
       );
-
       for (const list of responses) allResults.push(...list);
     }
 
-    // 🔄 Remove duplicatas
     const uniqueShows = Array.from(new Map(allResults.map((s) => [s.id, s])).values());
 
-    // 🔥 Filtra séries com poster e ordena
     shows.value = uniqueShows
       .filter((s) => s.poster_path)
       .sort((a, b) => {
@@ -184,41 +209,41 @@ onMounted(async () => {
 });
 </script>
 
-
 <template>
   <div id="top">
-  <h1>Séries de Terror</h1>
-  <div class="input-wrap">
-  <input
-    type="text"
-    v-model="query"
-    @input="handleInput"
-    @keyup.enter="searchShow"
-    placeholder="Pesquisar em séries..."
-    class="pesquisa"
-    @focus="showSuggestions = suggestions.length > 0"
-    @blur="setTimeout(() => (showSuggestions = false), 150)"
-  />
-  <i class="mdi mdi-magnify" @click="searchShow"></i>
+    <h1>Séries de Terror</h1>
+    <div class="input-wrap">
+      <input
+        type="text"
+        v-model="query"
+        @input="handleInput"
+        @keyup.enter="searchShow"
+        placeholder="Pesquisar em séries..."
+        class="pesquisa"
+        @focus="showSuggestions = suggestions.length > 0"
+        @blur="setTimeout(() => (showSuggestions = false), 150)"
+      />
+      <i class="mdi mdi-magnify" @click="searchShow"></i>
 
-  <ul v-if="showSuggestions" class="suggestion-list">
-    <li
-      v-for="s in suggestions"
-      :key="s.id"
-      @click="selectSuggestion(s)"
-      class="suggestion-item"
-    >
-      <img :src="`https://image.tmdb.org/t/p/w92${s.poster_path}`" />
-      <span>{{ s.name }}</span>
-    </li>
-  </ul>
-</div>
-</div>
+      <!-- 🔥 Sugestões roláveis -->
+      <ul v-if="showSuggestions" class="suggestion-list">
+        <li
+          v-for="s in suggestions"
+          :key="s.id"
+          @click="selectSuggestion(s)"
+          class="suggestion-item"
+        >
+          <img :src="`https://image.tmdb.org/t/p/w92${s.poster_path}`" />
+          <span>{{ s.name }}</span>
+        </li>
+      </ul>
+    </div>
+  </div>
 
   <!-- Subgêneros -->
   <ul class="genre-list">
     <li
-      v-for="sub in subgenres"  
+      v-for="sub in subgenres"
       :key="sub.id || 'all'"
       @click="listShows(sub)"
       class="genre-item"
@@ -247,6 +272,7 @@ onMounted(async () => {
     </div>
   </div>
 </template>
+
 
 
 <style scoped>

@@ -92,21 +92,21 @@ function resetCor() {
   ]
   document.body.style.backgroundColor = ''
   baladaAtiva.value = false
-    clearInterval(intervaloBalada)
-    intervaloBalada = null
+  clearInterval(intervaloBalada)
+  intervaloBalada = null
 
-    // Coloca a cor final para a transição
-    fundo.style.backgroundColor = ''
-    elementos.forEach(el => {
-      if (el) el.style.color = ''
-    })
+  // Coloca a cor final para a transição
+  fundo.style.backgroundColor = ''
+  elementos.forEach(el => {
+    if (el) el.style.color = ''
+  })
 
-    // Esconde o fundo depois da transição (tempo da transição)
-    setTimeout(() => {
-      if (!baladaAtiva.value) { // só esconde se ainda estiver desligada
-        fundo.style.display = 'none'
-      }
-    }, 800) // tempo deve ser igual à transition do CSS
+  // Esconde o fundo depois da transição (tempo da transição)
+  setTimeout(() => {
+    if (!baladaAtiva.value) { // só esconde se ainda estiver desligada
+      fundo.style.display = 'none'
+    }
+  }, 800) // tempo deve ser igual à transition do CSS
 }
 
 // ======== MENU E JOGOS ========
@@ -120,7 +120,7 @@ const games = [
   // { name: 'Tetris', component: TetrisGame },
 ]
 
-const code = ['h', 'a', 'n', 'n', 'a']
+const code = ['t', 'e', 'r', 'r', 'o', 'r']
 let inputSequence = []
 
 function handleKey(e) {
@@ -144,6 +144,13 @@ function closeGame() {
 
 onMounted(() => window.addEventListener('keydown', handleKey))
 onUnmounted(() => window.removeEventListener('keydown', handleKey))
+
+
+//MENU
+const openMenu = ref(false)
+function Menu() {
+  openMenu.value = !openMenu.value
+}
 </script>
 
 <template>
@@ -155,25 +162,36 @@ onUnmounted(() => window.removeEventListener('keydown', handleKey))
       <router-link to="/tv">Programas de TV</router-link>
     </nav>
 
-    <div class="cores">
-      <button class="reset" @click="resetCor()">
-        <span class="mdi mdi-refresh"></span>
-      </button>
 
-      <button class="cor" @click="cor()">
-        <span class="mdi mdi-palette"></span>
+      <button @click="Menu" class="p-2 border rounded text-3xl text-white" id="Menu">
+        <span class="mdi mdi-menu">
+        </span>
       </button>
+      <div v-if="openMenu">
+        <option value="1">
+          <button @click="toggleTheme()" class="p-2 border rounded text-3xl text-yellow-500">
+            <span
+              :class="['mdi rotate', isDarkMode ? 'mdi-weather-night' : 'mdi-white-balance-sunny', rotating ? 'rotate-rotate' : '']">
+            </span>
+          </button>
+        </option>
+        <option value="2">
+          <button class="cor" @click="cor()">
+            <span class="mdi mdi-palette"></span>
+          </button>
+        </option>
+        <option value="3">
+          <button class="balada" :class="{ active: baladaAtiva }" @click="balada()">
+            <span class="mdi mdi-auto-mode"></span>
+          </button>
+        </option>
+        <option value="4">
+          <button class="reset" @click="resetCor()">
+            <span class="mdi mdi-refresh"></span>
+          </button>
+        </option>
+      </div>
 
-      <button class="balada" :class="{ active: baladaAtiva }" @click="balada()">
-        <span class="mdi mdi-auto-mode"></span>
-      </button>
-    </div>
-
-    <button @click="toggleTheme()" class="p-2 border rounded text-3xl text-yellow-500">
-      <span
-        :class="['mdi rotate', isDarkMode ? 'mdi-weather-night' : 'mdi-white-balance-sunny', rotating ? 'rotate-rotate' : '']">
-      </span>
-    </button>
   </header>
 
   <main>
@@ -187,11 +205,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleKey))
       <p>Escolha um jogo para começar:</p>
 
       <div class="menu-buttons">
-        <button
-          v-for="game in games"
-          :key="game.name"
-          @click="openGame(game)"
-        >
+        <button v-for="game in games" :key="game.name" @click="openGame(game)">
           🕹️ {{ game.name }}
         </button>
 
@@ -245,6 +259,7 @@ button {
   display: inline-block;
   transition: transform 0.5s ease;
 }
+
 .rotate-rotate {
   transform: rotate(360deg);
 }
@@ -263,9 +278,10 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0,0,0,0.75);
+  background: rgba(0, 0, 0, 0.75);
   z-index: 9999;
 }
+
 .game-window {
   background: #111;
   padding: 24px;
@@ -276,6 +292,7 @@ button {
   color: white;
   text-align: center;
 }
+
 .close {
   position: absolute;
   right: 8px;
@@ -291,12 +308,14 @@ button {
 .menu h2 {
   margin-bottom: 12px;
 }
+
 .menu-buttons {
   display: flex;
   flex-direction: column;
   gap: 12px;
   margin-top: 16px;
 }
+
 .menu-buttons button {
   background: #333;
   border: 1px solid #666;
@@ -306,14 +325,17 @@ button {
   font-size: 1rem;
   transition: background 0.3s;
 }
+
 .menu-buttons button:hover {
   background: #555;
 }
+
 .close-menu {
   margin-top: 10px;
   background: #a22;
   border-color: #c44;
 }
+
 .close-menu:hover {
   background: #c33;
 }
@@ -329,13 +351,15 @@ button {
   height: 100%;
   z-index: -1;
   display: none;
-  transition: background-color 0.8s ease; /* suaviza a mudança de cor */
+  transition: background-color 0.8s ease;
+  /* suaviza a mudança de cor */
 }
 
 /* Elementos que mudam de cor */
 header button,
 header nav a {
-  transition: color 0.8s ease; /* suaviza a cor dos botões e links */
+  transition: color 0.8s ease;
+  /* suaviza a cor dos botões e links */
 }
 
 /* Piscar do botão da balada */
@@ -344,7 +368,24 @@ header nav a {
 }
 
 @keyframes pisca {
-  from { opacity: 1; transform: scale(1); }
-  to   { opacity: 0.4; transform: scale(1.12); }
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  to {
+    opacity: 0.4;
+    transform: scale(1.12);
+  }
+}
+
+/*MENU*/
+#menu {
+  
+}
+option {
+  display: flex;
+  flex-direction: column;
+  position: fixed; 
 }
 </style>
