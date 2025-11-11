@@ -9,23 +9,23 @@ const routes = [
   {
     path: '/filmes',
     name: 'Movies',
-    component: () => import('../views/MoviesView.vue'),
+    component: () => import('../views/MovieViews/MoviesView.vue'),
   },
   {
     path: '/tv',
     name: 'TV',
-    component: () => import('../views/TvView.vue'),
+    component: () => import('../views/ShowViews/TvView.vue'),
   },
   {
   path: '/movie/:movieId',
   name: 'MovieDetails',
-  component: () => import('../views/MovieDetailsView.vue'),
+  component: () => import('../views/MovieViews/MovieDetailsView.vue'),
   props: true,
   },
   {
   path: '/show/:showId',
   name: 'ShowDetails',
-  component: () => import('../views/TvDetailsView.vue'),
+  component: () => import('../views/ShowViews/TvDetailsView.vue'),
   props: true,
   },
 ];

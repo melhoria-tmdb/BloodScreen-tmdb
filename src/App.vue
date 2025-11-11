@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import BreakoutGame from './views/BreakoutGame.vue'
-import GatoRunnerGame from './views/GatoRunnerGame.vue'
+import BreakoutGame from './views/Games/BreakoutGame.vue'
+import GatoRunnerGame from './views/Games/GatoRunnerGame.vue'
 
 // ======== Tema ========
 const isDarkMode = ref(localStorage.getItem('theme') === 'dark')
