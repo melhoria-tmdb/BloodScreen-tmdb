@@ -109,7 +109,7 @@ function resetCor() {
   }, 800) // tempo deve ser igual à transition do CSS
 }
 
-// ======== MENU E JOGOS ========
+// ======== MENU DE JOGOS ========
 const showMenu = ref(false)
 const currentGame = ref(null)
 
@@ -146,7 +146,7 @@ onMounted(() => window.addEventListener('keydown', handleKey))
 onUnmounted(() => window.removeEventListener('keydown', handleKey))
 
 
-//MENU
+//MENU DO HEADER
 const openMenu = ref(false)
 function Menu() {
   openMenu.value = !openMenu.value
@@ -155,42 +155,47 @@ function Menu() {
 
 <template>
   <div id="balada-bg"></div>
+
   <header>
+ 
     <nav>
-      <router-link to="/">Home</router-link>
-      <router-link to="/filmes">Filmes</router-link>
-      <router-link to="/tv">Programas de TV</router-link>
+      <div id="bloodscreen">
+      <router-link to="/">BloodScreen</router-link>
+      </div>
     </nav>
 
+    <nav>
+      <div id="content">
+      <router-link to="/filmes">Filmes</router-link>
+      <router-link to="/tv">Séries</router-link>
+      </div>
+    </nav>
+    
+  <div class="menu-container">
+    <button @click="Menu" class="p-2 border rounded text-3xl text-white" id="Menu">
+      <span class="mdi mdi-menu"></span>
+    </button>
 
-      <button @click="Menu" class="p-2 border rounded text-3xl text-white" id="Menu">
-        <span class="mdi mdi-menu">
+    <div v-if="openMenu" class="dropdown-menu">
+      <button @click="toggleTheme()" class="p-2 border rounded text-3xl text-yellow-500">
+        <span
+          :class="['mdi rotate', isDarkMode ? 'mdi-weather-night' : 'mdi-white-balance-sunny', rotating ? 'rotate-rotate' : '']">
         </span>
       </button>
-      <div v-if="openMenu">
-        <option value="1">
-          <button @click="toggleTheme()" class="p-2 border rounded text-3xl text-yellow-500">
-            <span
-              :class="['mdi rotate', isDarkMode ? 'mdi-weather-night' : 'mdi-white-balance-sunny', rotating ? 'rotate-rotate' : '']">
-            </span>
-          </button>
-        </option>
-        <option value="2">
-          <button class="cor" @click="cor()">
-            <span class="mdi mdi-palette"></span>
-          </button>
-        </option>
-        <option value="3">
-          <button class="balada" :class="{ active: baladaAtiva }" @click="balada()">
-            <span class="mdi mdi-auto-mode"></span>
-          </button>
-        </option>
-        <option value="4">
-          <button class="reset" @click="resetCor()">
-            <span class="mdi mdi-refresh"></span>
-          </button>
-        </option>
-      </div>
+
+      <button class="cor" @click="cor()">
+        <span class="mdi mdi-palette"></span>
+      </button>
+
+      <button class="balada" :class="{ active: baladaAtiva }" @click="balada()">
+        <span class="mdi mdi-auto-mode"></span>
+      </button>
+
+      <button class="reset" @click="resetCor()">
+        <span class="mdi mdi-refresh"></span>
+      </button>
+    </div>
+  </div>
 
   </header>
 
@@ -225,26 +230,84 @@ function Menu() {
 
 <style>
 header {
+  position: relative; 
   height: 3rem;
   display: flex;
-  background-color: black;
+  background-color: transparent;
   color: #fff;
   font-size: 1.2rem;
-  padding-left: 2rem;
   justify-content: space-between;
   align-items: center;
+  z-index: 1000;
+}
+/* Logo */
+#bloodscreen a {
+  font-size: 1.5rem;
+  font-weight: bold;
+  letter-spacing: 1px;
 }
 
+/* CONTEÚDO CENTRAL (links) */
+#content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 3vw; /* espaçamento fluido */
+}
+
+#content a {
+  text-decoration: none;
+  color: #fff;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+#content a:hover {
+  color: #ff4d4d;
+}
 nav {
-  column-gap: 2rem;
   display: flex;
   align-items: center;
 }
 
-nav a {
-  text-decoration: none;
-  color: #fff;
+/* Transições suaves */
+header button,
+header nav a {
+  transition: color 0.4s ease;
 }
+
+.menu-container {
+  position: relative; /* referência pro dropdown */
+}
+.menu-container button {
+  font-size: 1.8rem;
+}
+.dropdown-menu {
+  position: absolute;
+  top: 100%; /* logo abaixo do botão */
+  right: 1.2vw;
+  background-color: #111;
+  border: 1px solid #444;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0.5rem;
+  z-index: 999;
+}
+.dropdown-menu button {
+  color: white;
+  font-size: 1.6rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+.dropdown-menu button:hover {
+  background: #222;
+  border-radius: 6px;
+}
+
 
 button {
   background: none;
