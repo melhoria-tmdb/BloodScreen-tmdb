@@ -8,15 +8,17 @@
 :root {
   --bg: #ffffff;
   --text: #111111;
-  --header-bg: #f5f5f5;
-  --header-text: #111111;
+  --header-bg: transparent;
+  --nav-link: #000;
+  --nav-link-hover: #c00;
 }
 
 .dark {
-  --bg: #0b0b0b;
-  --text: #eeeeee;
-  --header-bg: #111111;
-  --header-text: #ffffff;
+  --bg: #111111;
+  --text: #ffffff;
+  --header-bg: transparent;
+  --nav-link: #fff;
+  --nav-link-hover: #ff4d4d;
 }
 
 html, body, #app {
