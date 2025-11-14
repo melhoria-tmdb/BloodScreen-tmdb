@@ -190,11 +190,22 @@ const clearSearch = () => {
 
 .pesquisa {
   width: 100%;
+  /* faz o input se ajustar ao .input-wrap */
   padding: 10px 40px 10px 15px;
+  /* espaço extra à direita pro ícone */
   height: 40px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--text);
   border-radius: 6px;
   font-size: 16px;
+}
+
+.pesquisa:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.pesquisa:focus-visible {
+  outline: 2px solid transparent;
 }
 
 .suggestion-list {

@@ -152,14 +152,13 @@ const clearSearch = () => {
   padding: 10px 40px 10px 15px;
   /* espaço extra à direita pro ícone */
   height: 40px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--text);
   border-radius: 6px;
   font-size: 16px;
 }
 
 .pesquisa:focus {
   outline: none;
-  border-color: transparent;
   box-shadow: none;
 }
 
