@@ -42,25 +42,13 @@ const selectSuggestion = (movie) => {
 
 <template>
   <div class="input-wrap">
-    <input
-      type="text"
-      v-model="query"
-      @input="handleInput"
-      @keyup.enter="fetchSuggestions"
-      placeholder="Pesquisar em filmes..."
-      class="pesquisa"
-      @focus="showSuggestions = suggestions.length > 0"
-      @blur="setTimeout(() => (showSuggestions = false), 150)"
-    />
+    <input type="text" v-model="query" @input="handleInput" @keyup.enter="fetchSuggestions"
+      placeholder="Pesquisar em filmes..." class="pesquisa" @focus="showSuggestions = suggestions.length > 0"
+      @blur="setTimeout(() => (showSuggestions = false), 150)" />
     <i class="mdi mdi-magnify"></i>
 
     <ul v-if="showSuggestions" class="suggestion-list">
-      <li
-        v-for="s in suggestions"
-        :key="s.id"
-        @click="selectSuggestion(s)"
-        class="suggestion-item"
-      >
+      <li v-for="s in suggestions" :key="s.id" @click="selectSuggestion(s)" class="suggestion-item">
         <img :src="`https://image.tmdb.org/t/p/w92${s.poster_path}`" />
         <span>{{ s.title }}</span>
       </li>
@@ -73,7 +61,8 @@ const selectSuggestion = (movie) => {
   position: relative;
   display: inline-block;
   width: 100%;
-  max-width: 400px; /* limite opcional — pode aumentar ou remover */
+  max-width: 400px;
+  /* limite opcional — pode aumentar ou remover */
 }
 
 .input-wrap i {
@@ -86,21 +75,26 @@ const selectSuggestion = (movie) => {
 }
 
 .pesquisa {
-  width: 100%; /* faz o input se ajustar ao .input-wrap */
-  padding: 10px 40px 10px 15px; /* espaço extra à direita pro ícone */
+  width: 100%;
+  /* faz o input se ajustar ao .input-wrap */
+  padding: 10px 40px 10px 15px;
+  /* espaço extra à direita pro ícone */
   height: 40px;
   border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 16px;
 }
+
 .pesquisa:focus {
   outline: none;
   border-color: transparent;
   box-shadow: none;
 }
+
 .pesquisa:focus-visible {
   outline: 2px solid transparent;
 }
+
 .suggestion-list {
   position: absolute;
   top: 100%;
@@ -116,8 +110,10 @@ const selectSuggestion = (movie) => {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
 
   /* 🧭 Adiciona rolagem */
-  max-height: 300px; /* altura máxima visível */
-  overflow-y: auto; /* ativa scroll vertical */
+  max-height: 300px;
+  /* altura máxima visível */
+  overflow-y: auto;
+  /* ativa scroll vertical */
 
   /* Opcional: scroll suave e estilizado */
   scrollbar-width: thin;

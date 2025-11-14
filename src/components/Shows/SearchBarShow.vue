@@ -2,9 +2,7 @@
 import { ref } from 'vue';
 import api from '@/plugins/axios';
 
-
 const emit = defineEmits(['select']);
-
 
 const query = ref('');
 const suggestions = ref([]);
@@ -55,7 +53,7 @@ const fetchSuggestions = async () => {
     const results = res.data.results || [];
 
     const checks = await Promise.all(
-      results.slice(0, 15).map(async (show) =>
+      results.slice(0, 80).map(async (show) =>
         (await isHorrorShow(show.id)) ? show : null
       )
     );
