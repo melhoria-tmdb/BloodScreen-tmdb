@@ -38,14 +38,57 @@ const selectSuggestion = (movie) => {
   showSuggestions.value = false
   emit('select', movie.id)
 }
+
+const searchAndSelect = async () => {
+  if (!query.value.trim()) return;
+
+  try {
+    const res = await api.get('/search/movie', {
+      params: {
+        query: query.value,
+        include_adult: false,
+        language: 'pt-BR',
+      },
+    });
+
+    let results = res.data.results || [];
+
+    // 🔥 Filtro apenas filmes de terror (gênero 27)
+    results = results.filter((m) => m.genre_ids?.includes(27));
+
+    if (results.length === 0) return;
+
+    // Tenta achar correspondência exata com o nome digitado
+    const exact = results.find(
+      (m) => m.title.toLowerCase() === query.value.toLowerCase()
+    );
+
+    const selected = exact || results[0]; // caso não exista exato, pega o mais relevante
+
+    emit("select", selected.id);
+    showSuggestions.value = false;
+  } catch (err) {
+    console.error("Erro ao buscar filme:", err);
+  }
+};
+
+const clearSearch = () => {
+  query.value = ''
+  suggestions.value = []
+  showSuggestions.value = false
+  clearTimeout(searchTimeout)
+}
+
 </script>
 
 <template>
   <div class="input-wrap">
-    <input type="text" v-model="query" @input="handleInput" @keyup.enter="fetchSuggestions"
+    <input type="text" v-model="query" @input="handleInput" @keyup.enter="searchAndSelect"
       placeholder="Pesquisar em filmes..." class="pesquisa" @focus="showSuggestions = suggestions.length > 0"
       @blur="setTimeout(() => (showSuggestions = false), 150)" />
-    <i class="mdi mdi-magnify"></i>
+    <i v-if="query" class="mdi mdi-close-thick" @click="clearSearch"></i>
+    <i class="mdi mdi-magnify" @click="searchAndSelect"></i>
+
 
     <ul v-if="showSuggestions" class="suggestion-list">
       <li v-for="s in suggestions" :key="s.id" @click="selectSuggestion(s)" class="suggestion-item">
@@ -72,6 +115,35 @@ const selectSuggestion = (movie) => {
   transform: translateY(-50%);
   color: #666;
   font-size: 20px;
+}
+.input-wrap .mdi-close-thick {
+  position: absolute;
+  right: 12%;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  color: #777;
+  cursor: pointer;
+  padding: 2px 6px; /* ↓ padding vertical bem menor */
+  border-radius: 12px;
+  transition: 0.2s;
+}
+.input-wrap .mdi-close-thick:hover {
+  background: #e5e5e5;
+  color: #333;
+}
+
+.input-wrap .mdi-magnify {
+  color: #777;
+  cursor: pointer;
+  padding: 2px 6px; /* ↓ padding vertical bem menor */
+  transform: translateY(-50%);
+  border-radius: 12px;
+  transition: 0.2s;
+}
+.input-wrap .mdi-magnify:hover {
+  background: #e5e5e5;
+  color: #333;
 }
 
 .pesquisa {

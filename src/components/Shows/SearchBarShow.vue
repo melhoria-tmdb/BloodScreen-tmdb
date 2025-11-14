@@ -44,12 +44,9 @@ const handleInput = () => {
 const fetchSuggestions = async () => {
   try {
     const res = await api.get('/search/tv', {
-      params: {
-        query: query.value,
-        include_adult: false,
-        language: 'pt-BR',
-      },
+      params: { query: query.value, include_adult: false, language: 'pt-BR' },
     });
+
     const results = res.data.results || [];
 
     const checks = await Promise.all(
@@ -60,6 +57,7 @@ const fetchSuggestions = async () => {
 
     suggestions.value = checks.filter((s) => s && s.poster_path).slice(0, 10);
     showSuggestions.value = suggestions.value.length > 0;
+
   } catch (err) {
     console.error('Erro nas sugestões:', err);
   }
@@ -71,7 +69,49 @@ const selectSuggestion = (show) => {
   showSuggestions.value = false;
   emit('select', show.id);
 };
+
+// 🔍 Buscar e selecionar manualmente
+const searchAndSelect = async () => {
+  if (!query.value.trim()) return;
+
+  try {
+    const res = await api.get('/search/tv', {
+      params: { query: query.value, include_adult: false, language: 'pt-BR' },
+    });
+
+    const results = res.data.results || [];
+    if (results.length === 0) return;
+
+    const horrorResults = await Promise.all(
+      results.slice(0, 20).map(async (show) =>
+        (await isHorrorShow(show.id)) ? show : null
+      )
+    );
+
+    const valid = horrorResults.filter((s) => s);
+    if (valid.length === 0) return;
+
+    const selected =
+      valid.find((s) => s.name.toLowerCase() === query.value.toLowerCase()) ||
+      valid[0];
+
+    emit("select", selected.id);
+    showSuggestions.value = false;
+
+  } catch (err) {
+    console.error("Erro ao buscar série:", err);
+  }
+};
+
+// 🔥 LIMPAR BUSCA (igual filmes)
+const clearSearch = () => {
+  query.value = '';
+  suggestions.value = [];
+  showSuggestions.value = false;
+  clearTimeout(searchTimeout);
+};
 </script>
+
 
 <template>
   <div class="input-wrap">
@@ -79,13 +119,18 @@ const selectSuggestion = (show) => {
       type="text"
       v-model="query"
       @input="handleInput"
-      @keyup.enter="emit('select', query)"
+      @keyup.enter="searchAndSelect()"
       placeholder="Pesquisar em séries..."
       class="pesquisa"
       @focus="showSuggestions = suggestions.length > 0"
       @blur="setTimeout(() => (showSuggestions = false), 150)"
     />
-    <i class="mdi mdi-magnify" @click="emit('select', query)"></i>
+
+    <!-- Ícone de limpar -->
+    <i v-if="query" class="mdi mdi-close-thick" @click="clearSearch"></i>
+
+    <!-- Ícone de lupa -->
+    <i class="mdi mdi-magnify" @click="searchAndSelect()"></i>
 
     <ul v-if="showSuggestions" class="suggestion-list">
       <li
@@ -101,6 +146,7 @@ const selectSuggestion = (show) => {
   </div>
 </template>
 
+
 <style scoped>
 .input-wrap {
   position: relative;
@@ -108,15 +154,40 @@ const selectSuggestion = (show) => {
   width: 100%;
   max-width: 400px;
 }
+
 .input-wrap i {
   position: absolute;
-  right: 5%;
   top: 50%;
   transform: translateY(-50%);
-  color: #666;
   font-size: 20px;
+  color: #666;
   cursor: pointer;
 }
+
+/* Ícone X – alinhado e com padding menor */
+.input-wrap .mdi-close-thick {
+  right: 12%;
+  padding: 2px 6px;
+  border-radius: 12px;
+  transition: 0.2s;
+}
+.input-wrap .mdi-close-thick:hover {
+  background: #e5e5e5;
+  color: #333;
+}
+
+/* Ícone lupa */
+.input-wrap .mdi-magnify {
+  right: 5%;
+  padding: 2px 6px;
+  border-radius: 12px;
+  transition: 0.2s;
+}
+.input-wrap .mdi-magnify:hover {
+  background: #e5e5e5;
+  color: #333;
+}
+
 .pesquisa {
   width: 100%;
   padding: 10px 40px 10px 15px;
@@ -125,6 +196,7 @@ const selectSuggestion = (show) => {
   border-radius: 6px;
   font-size: 16px;
 }
+
 .suggestion-list {
   position: absolute;
   top: 100%;
@@ -139,7 +211,10 @@ const selectSuggestion = (show) => {
   z-index: 10;
   max-height: 300px;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #7a0b0b #111;
 }
+
 .suggestion-item {
   display: flex;
   align-items: center;
@@ -152,6 +227,7 @@ const selectSuggestion = (show) => {
 .suggestion-item:hover {
   background: #7a0b0b;
 }
+
 .suggestion-item img {
   width: 40px;
   height: 60px;

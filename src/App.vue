@@ -157,7 +157,7 @@ function Menu() {
   <div id="balada-bg"></div>
 
   <header>
- 
+
     <nav>
       <div id="bloodscreen">
       <router-link to="/">BloodScreen</router-link>
@@ -170,7 +170,7 @@ function Menu() {
       <router-link to="/tv">Séries</router-link>
       </div>
     </nav>
-    
+
   <div class="menu-container">
     <button @click="Menu" class="p-2 border rounded text-3xl text-white" id="Menu">
       <span class="mdi mdi-menu"></span>
@@ -230,7 +230,7 @@ function Menu() {
 
 <style>
 header {
-  position: relative; 
+  position: relative;
   height: 3rem;
   display: flex;
   background-color: transparent;
@@ -252,7 +252,15 @@ header {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 3vw; /* espaçamento fluido */
+
+
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  display: flex;
+  gap: 3vw;
 }
 
 #content a {
@@ -444,11 +452,11 @@ header nav a {
 
 /*MENU*/
 #menu {
-  
+
 }
 option {
   display: flex;
   flex-direction: column;
-  position: fixed; 
+  position: fixed;
 }
 </style>
