@@ -285,7 +285,7 @@ onUnmounted(() => {
 .breakout-wrap { display:flex; flex-direction:column; align-items:center; gap:8px; }
 canvas { border-radius:8px; box-shadow:0 6px 30px rgba(0,0,0,0.6); touch-action:none; }
 .hud { width:100%; display:flex; justify-content:space-between; align-items:center; color:#fff; margin-bottom:6px; }
-.hud button { background:#1f6feb; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; }
+.hud button { background:#d80505; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; }
 .controls { color:#bbb; font-size:12px; margin-top:6px; text-align:center; }
 .restart { margin-left:11vw; }
 

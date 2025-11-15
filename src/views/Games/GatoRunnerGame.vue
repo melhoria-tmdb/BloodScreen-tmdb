@@ -1,8 +1,9 @@
 <template>
   <div class="runner-wrap">
     <div class="hud">
-      <div>Pontuação: {{ score }}</div>
+      <div id="points">Pontuação: {{ score }}</div>
       <button @click="restart" class="restart">Reiniciar</button>
+      <button @click="$emit('close')">Fechar</button>
     </div>
 
     <canvas ref="canvas" :width="canvasW" :height="canvasH" tabindex="0"></canvas>
@@ -24,54 +25,122 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 
+// =============================================================
+// CANVAS
+// =============================================================
 const canvas = ref(null)
 const canvasW = 700
 const canvasH = 200
 
-let ctx, rafId
-let isJumping = false
-let jumpVelocity = 0
+let ctx = null
+let rafId = null
 
 const score = ref(0)
 const showDefeat = ref(false)
+let isJumping = false
 
-// Gato
-const cat = {
-  x: 50,
-  y: canvasH - 40,
-  w: 40,
-  h: 40,
-  vy: 0,
-  gravity: 0.8,
-  jumpStrength: -12,
+// =============================================================
+// SPRITES
+// =============================================================
+const spriteRun = new Image()
+spriteRun.src = '/running.png'
+
+const spriteJump = new Image()
+spriteJump.src = '/jumping.png'
+
+// Configurações de animação
+const animations = {
+  run: {
+    img: spriteRun,
+    frameW: 64,
+    frameH: 64,
+    frames: 4,
+    speed: 6,
+  },
+  jump: {
+    img: spriteJump,
+    frameW: 64,
+    frameH: 64,
+    frames: 1,
+    speed: 1,
+  }
 }
 
-// Obstáculos
+const cat = {
+  x: 50,
+  y: canvasH - 10,
+  w: 64 ,
+  h: 64,
+  vy: 4,
+  gravity: 0.8,
+  jumpStrength: -12,
+  anim: "run",
+  frame: 0,
+  frameCounter: 0,
+}
+
+// =============================================================
+// OBSTÁCULOS
+// =============================================================
 let obstacles = []
 const obstacleWidth = 20
 const obstacleHeight = 40
 const obstacleSpeed = 6
 let spawnTimer = 0
 
+// =============================================================
+// DESENHAR GATO
+// =============================================================
 function drawCat() {
-  ctx.fillStyle = '#ff9900'
-  ctx.fillRect(cat.x, cat.y, cat.w, cat.h)
+  const anim = animations[cat.anim]
+
+  const sx = anim.frameW * cat.frame
+  const sy = 0
+
+  ctx.drawImage(
+    anim.img,
+    sx, sy, anim.frameW, anim.frameH,
+    cat.x, cat.y, cat.w, cat.h
+  )
 }
 
-function drawObstacles() {
-  ctx.fillStyle = '#333'
-  obstacles.forEach(o => ctx.fillRect(o.x, o.y, o.w, o.h))
+// =============================================================
+// ATUALIZA ANIMAÇÃO
+// =============================================================
+function updateAnimation() {
+  const anim = animations[cat.anim]
+
+  cat.frameCounter++
+  if (cat.frameCounter >= anim.speed) {
+    cat.frame = (cat.frame + 1) % anim.frames
+    cat.frameCounter = 0
+  }
 }
 
+// =============================================================
+// ATUALIZA GATO
+// =============================================================
 function updateCat() {
   cat.vy += cat.gravity
   cat.y += cat.vy
 
-  if (cat.y + cat.h > canvasH) {
+  // chão
+  if (cat.y + cat.h >= canvasH) {
     cat.y = canvasH - cat.h
     cat.vy = 0
     isJumping = false
+    cat.anim = "run"
   }
+
+  updateAnimation()
+}
+
+// =============================================================
+// OBSTÁCULOS
+// =============================================================
+function drawObstacles() {
+  ctx.fillStyle = '#333'
+  obstacles.forEach(o => ctx.fillRect(o.x, o.y, o.w, o.h))
 }
 
 function updateObstacles() {
@@ -90,6 +159,9 @@ function updateObstacles() {
   }
 }
 
+// =============================================================
+// COLISÃO
+// =============================================================
 function collisionDetection() {
   for (let o of obstacles) {
     if (
@@ -104,15 +176,18 @@ function collisionDetection() {
   }
 }
 
+// =============================================================
+// LOOP PRINCIPAL
+// =============================================================
 function loop() {
   ctx.clearRect(0, 0, canvasW, canvasH)
-  ctx.fillStyle = '#cceeff'
+
+  ctx.fillStyle = '#B3B3B3'
   ctx.fillRect(0, 0, canvasW, canvasH)
 
   updateCat()
   updateObstacles()
   collisionDetection()
-
   drawCat()
   drawObstacles()
 
@@ -122,18 +197,28 @@ function loop() {
   }
 }
 
+// =============================================================
+// INPUT
+// =============================================================
 function jump() {
   if (!isJumping) {
-    cat.vy = cat.jumpStrength
     isJumping = true
+    cat.vy = cat.jumpStrength
+    cat.anim = "jump"
+    cat.frame = 0
   }
 }
 
+// =============================================================
+// REINICIAR
+// =============================================================
 function restart() {
   cancelAnimationFrame(rafId)
   score.value = 0
   cat.y = canvasH - cat.h
   cat.vy = 0
+  cat.frame = 0
+  cat.frameCounter = 0
   obstacles = []
   showDefeat.value = false
   rafId = requestAnimationFrame(loop)
@@ -143,16 +228,36 @@ function handleRestart() {
   restart()
 }
 
+// =============================================================
+// TECLAS
+// =============================================================
 function keyDownHandler(e) {
   if (e.code === 'Space') jump()
 }
 
+// =============================================================
+// MONTAGEM
+// =============================================================
+let loaded = 0
+function tryStart() {
+  loaded++
+  if (loaded === 2) {
+    rafId = requestAnimationFrame(loop)
+  }
+}
+
 onMounted(() => {
   ctx = canvas.value.getContext('2d')
-  rafId = requestAnimationFrame(loop)
+
+  // pixel art nítido
+  ctx.imageSmoothingEnabled = false
+
+  spriteRun.onload = tryStart
+  spriteJump.onload = tryStart
 
   window.addEventListener('keydown', keyDownHandler)
 })
+
 onUnmounted(() => {
   cancelAnimationFrame(rafId)
   window.removeEventListener('keydown', keyDownHandler)
@@ -179,11 +284,11 @@ canvas {
   color: #000;
   margin-bottom: 6px;
 }
-.hud div{
+.hud #points {
   color: white;
 }
 .hud button {
-  background: #1f6feb;
+  background: #d80505;
   color: white;
   border: none;
   padding: 6px 10px;

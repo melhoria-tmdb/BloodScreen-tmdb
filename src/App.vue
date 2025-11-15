@@ -111,6 +111,33 @@ const openMenu = ref(false)
 function Menu() {
   openMenu.value = !openMenu.value
 }
+/* ============================================================
+   DETECTOR ClIQUE
+============================================================ */
+function handleClickOutside(event) {
+  const menu = document.querySelector('.dropdown-menu')
+  const menuButton = document.getElementById('Menu')
+
+  // Se o menu não está aberto, ignora
+  if (!openMenu.value) return
+
+  // Se clicou dentro do menu ou no botão do menu → não fecha
+  if (menu?.contains(event.target) || menuButton?.contains(event.target)) {
+    return
+  }
+
+  // Qualquer clique fora → fecha
+  openMenu.value = false
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
+
 </script>
 
 <template>
@@ -166,11 +193,14 @@ function Menu() {
       <p>Escolha um jogo:</p>
 
       <div class="menu-buttons">
+        <div class="game-buttons">
         <button v-for="game in games" :key="game.name" @click="openGame(game)">
           🕹️ {{ game.name }}
         </button>
-
+        </div>
+        <div class="close-button">
         <button class="close-menu" @click="showMenu = false">Fechar</button>
+      </div>
       </div>
     </div>
   </div>
@@ -228,6 +258,9 @@ header {
 
 #content a {
   text-decoration: none;
+}
+#content a:hover {
+  color: red !important;
 }
 
 /* ============================================================
@@ -300,12 +333,40 @@ button {
 
 .game-window {
   background: #111;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
   color: white;
   padding: 24px;
   width: 720px;
   max-width: calc(100% - 32px);
   border-radius: 12px;
 }
+.game-window h2{
+  font-size: 2rem;
+}
+.game-window p{
+  font-size: 1.4rem;
+  margin-bottom: 1.4vw;
+}
+.menu-buttons{
+  display: flex;
+  flex-direction: column;
+  gap: 1vw;
+}
+.menu-buttons .game-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1vw;
+  margin-bottom: 1.4vw;
+}
+
+.menu-buttons .game-buttons button {
+  background-color: red;
+  border-radius: 12px;
+  padding: 1.4vw;
+}
+
 
 .close {
   position: absolute;
