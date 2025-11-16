@@ -17,6 +17,11 @@ const routes = [
     component: () => import('../views/ShowViews/TvView.vue'),
   },
   {
+    path: '/elenco',
+    name: 'elenco',
+    component: () => import('../components/casting.vue'),
+  },
+  {
   path: '/movie/:movieId',
   name: 'MovieDetails',
   component: () => import('../views/MovieViews/MovieDetailsView.vue'),
@@ -28,6 +33,7 @@ const routes = [
   component: () => import('../views/ShowViews/TvDetailsView.vue'),
   props: true,
   },
+
 ];
 
 const router = createRouter({

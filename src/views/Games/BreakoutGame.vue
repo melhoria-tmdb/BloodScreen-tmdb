@@ -1,10 +1,14 @@
 <template>
   <div class="breakout-wrap">
     <div class="hud">
-      <div>Pontuação: {{ score }}</div>
-      <div>Vidas: {{ lives }}</div>
-      <button @click="restart" class="restart">Reiniciar</button>
-      <button @click="$emit('close')">Fechar</button>
+      <div class="left">
+        <div>Pontuação: {{ score }}</div>
+        <div id="lives">Vidas: {{ lives }}</div>
+      </div>
+      <div class="right">
+        <button @click="restart" class="restart">Reiniciar</button>
+        <button @click="$emit('close')">Fechar</button>
+      </div>
     </div>
 
     <canvas ref="canvas" :width="canvasW" :height="canvasH" tabindex="0"></canvas>
@@ -33,7 +37,6 @@ const canvasH = 400
 
 let ctx, rafId
 let leftDown = false, rightDown = false
-let touchStartX = null
 
 // estado
 const score = ref(0)
@@ -53,7 +56,6 @@ const brickOffsetLeft = (canvasW - (brickColCount * (brickWidth + brickPadding) 
 
 let bricks = []
 const speedIncreaseFactor = 1.01
-const minSpeed = 2
 
 // inicializa tijolos
 function initBricks() {
@@ -111,17 +113,6 @@ function movePaddle() {
   paddle.x = Math.max(0, Math.min(canvasW - paddle.w, paddle.x))
 }
 
-function isLevelCleared(){
-  for (let c = 0; c < brickColCount; c++)
-  {
-    for (let r = 0; r < brickRowCount; r++)
-    {
-      if (bricks[c][r].status === 1) return false
-    }
-  }
-  return true
-}
-
 function collisionDetection() {
   for (let c = 0; c < brickColCount; c++) {
     for (let r = 0; r < brickRowCount; r++) {
@@ -162,44 +153,83 @@ function collisionDetection() {
   }
 }
 
+//
+//  █████   WALL COLLISION FIX 🔥
+//
 function updateBall() {
   ball.x += ball.vx
   ball.y += ball.vy
 
-  // paredes
-  if (ball.x + ball.r > canvasW || ball.x - ball.r < 0) ball.vx = -ball.vx
-  if (ball.y - ball.r < 0) ball.vy = -ball.vy
-
-  // paddle
-  if (
-    ball.y + ball.r > paddle.y &&
-    ball.x + ball.r > paddle.x &&
-    ball.x - ball.r < paddle.x + paddle.w &&
-    ball.vy > 0
-  ) {
-    const collidePoint = (ball.x - (paddle.x + paddle.w / 2)) / (paddle.w / 2)
-    const angle = collidePoint * (Math.PI / 3)
-    const speed = Math.sqrt(ball.vx ** 2 + ball.vy ** 2)
-    ball.vx = speed * Math.sin(angle)
-    ball.vy = -Math.abs(speed * Math.cos(angle))
-    ball.y = paddle.y - ball.r - 1
+  // ==== parede esquerda ====
+  if (ball.x - ball.r < 0) {
+    ball.x = ball.r
+    ball.vx = Math.abs(ball.vx)
   }
 
-  // derrota
+  // ==== parede direita ====
+  else if (ball.x + ball.r > canvasW) {
+    ball.x = canvasW - ball.r
+    ball.vx = -Math.abs(ball.vx)
+  }
+
+  // ==== teto ====
+  if (ball.y - ball.r < 0) {
+    ball.y = ball.r
+    ball.vy = Math.abs(ball.vy)
+  }
+
+// ==== paddle collision (melhorado) ====
+if (ball.vy > 0) {
+  const nextY = ball.y + ball.vy
+  const willCrossPaddle =
+    ball.y + ball.r <= paddle.y && nextY + ball.r >= paddle.y
+
+  const withinHorizontal =
+    ball.x + ball.r > paddle.x &&
+    ball.x - ball.r < paddle.x + paddle.w
+
+  if (willCrossPaddle && withinHorizontal) {
+    // calcula ponto de colisão
+    const collidePoint = (ball.x - (paddle.x + paddle.w / 2)) / (paddle.w / 2)
+    const angle = collidePoint * (Math.PI / 2.5)
+
+    // velocidade mantida
+    const speed = Math.sqrt(ball.vx ** 2 + ball.vy ** 2)
+
+    ball.vx = speed * Math.sin(angle)
+    ball.vy = -Math.abs(speed * Math.cos(angle))
+
+    // reposiciona exatamente acima do paddle
+    ball.y = paddle.y - ball.r - 0.5
+  }
+}
+
+
+  // ==== derrota ====
   if (ball.y - ball.r > canvasH && !showDefeat.value) {
     lives.value--
     if (lives.value <= 0) {
       showDefeat.value = true
       cancelAnimationFrame(rafId)
       return
-    } else {
-      ball.x = canvasW / 2
-      ball.y = canvasH / 2
-      ball.vx = 4 * (Math.random() > 0.5 ? 1 : -1)
-      ball.vy = -4
-      paddle.x = (canvasW - paddle.w) / 2
+    }
+
+    // reset parcial
+    ball.x = canvasW / 2
+    ball.y = canvasH / 2
+    ball.vx = 4 * (Math.random() > 0.5 ? 1 : -1)
+    ball.vy = -4
+    paddle.x = (canvasW - paddle.w) / 2
+  }
+}
+
+function isLevelCleared() {
+  for (let c = 0; c < brickColCount; c++) {
+    for (let r = 0; r < brickRowCount; r++) {
+      if (bricks[c][r].status === 1) return false
     }
   }
+  return true
 }
 
 function resetAll() {
@@ -223,8 +253,9 @@ function loop() {
   updateBall()
   collisionDetection()
 
-  //verifica vitória de fase
-  if (isLevelCleared()) { cancelAnimationFrame(rafId)
+  // vitória da fase
+  if (isLevelCleared()) {
+    cancelAnimationFrame(rafId)
     ctx.fillStyle = 'rgba(0,0,0,0.6)'
     ctx.fillRect(0, canvasH / 2 - 40, canvasW, 80)
     ctx.fillStyle = '#fff'
@@ -232,12 +263,13 @@ function loop() {
     ctx.textAlign = 'center'
     ctx.fillText('🏆 Fase concluída!', canvasW / 2, canvasH / 2 + 8)
 
-    setTimeout(() =>
-    { resetAll()
-    rafId = requestAnimationFrame(loop)
+    setTimeout(() => {
+      resetAll()
+      rafId = requestAnimationFrame(loop)
     }, 1000)
 
-   return }
+    return
+  }
 
   drawBricks()
   drawPaddle()
@@ -258,9 +290,18 @@ function handleRestart() {
 }
 
 function keyDownHandler(e) {
+  if (showDefeat.value) {
+    if (e.code === 'KeyR' || e.code === 'Space') {
+      e.preventDefault()
+      restart()
+    }
+    return
+  }
+
   if (e.key === 'ArrowLeft') leftDown = true
   else if (e.key === 'ArrowRight') rightDown = true
 }
+
 function keyUpHandler(e) {
   if (e.key === 'ArrowLeft') leftDown = false
   else if (e.key === 'ArrowRight') rightDown = false
@@ -274,6 +315,7 @@ onMounted(() => {
   window.addEventListener('keydown', keyDownHandler)
   window.addEventListener('keyup', keyUpHandler)
 })
+
 onUnmounted(() => {
   cancelAnimationFrame(rafId)
   window.removeEventListener('keydown', keyDownHandler)
@@ -282,41 +324,79 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.breakout-wrap { display:flex; flex-direction:column; align-items:center; gap:8px; }
-canvas { border-radius:8px; box-shadow:0 6px 30px rgba(0,0,0,0.6); touch-action:none; }
-.hud { width:100%; display:flex; justify-content:space-between; align-items:center; color:#fff; margin-bottom:6px; }
-.hud button { background:#d80505; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; }
-.controls { color:#bbb; font-size:12px; margin-top:6px; text-align:center; }
-.restart { margin-left:11vw; }
+.breakout-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+canvas {
+  border-radius: 8px;
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.6);
+  touch-action: none;
+}
+
+.hud {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #fff;
+  margin-bottom: 6px;
+}
+
+.hud .right {
+  display: flex;
+  gap: 2vw;
+}
+
+.hud button {
+  background: #d80505;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.controls {
+  color: #bbb;
+  font-size: 12px;
+  margin-top: 6px;
+  text-align: center;
+}
 
 .overlay {
-  position:absolute;
-  inset:0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:rgba(0,0,0,0.8);
-  border-radius:8px;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 8px;
 }
 
 .message {
-  background:#1a1a1a;
-  color:white;
-  padding:20px 40px;
-  border-radius:12px;
-  text-align:center;
-  box-shadow:0 0 20px rgba(0,0,0,0.6);
+  background: #1a1a1a;
+  color: white;
+  padding: 20px 40px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
 }
+
 .message button {
-  background:#4caf50;
-  color:white;
-  border:none;
-  padding:8px 16px;
-  border-radius:8px;
-  margin-top:10px;
-  cursor:pointer;
+  background: #4caf50;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  margin-top: 10px;
+  cursor: pointer;
 }
+
 .message button:hover {
-  background:#66bb6a;
+  background: #66bb6a;
 }
 </style>

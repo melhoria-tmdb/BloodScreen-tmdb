@@ -1,18 +1,25 @@
-import { reactive, computed } from 'vue';
-import { defineStore } from 'pinia';
-import api from '@/plugins/axios';
+import { defineStore } from 'pinia'
+import api from '@/plugins/axios'
 
-export const useMovieStore = defineStore('movie', () => {
-  const state = reactive({
+export const useMovieStore = defineStore('movie', {
+  state: () => ({
     currentMovie: {},
-  });
+    currentCast: [],
+  }),
 
-  const currentMovie = computed(() => state.currentMovie);
+  actions: {
+    async getMovieDetail(movieId) {
+      const { data } = await api.get(`/movie/${movieId}`, {
+        params: { language: 'pt-BR' }
+      });
+      this.currentMovie = data;
+    },
 
-  const getMovieDetail = async (movieId) => {
-    const response = await api.get(`movie/${movieId}?language=pt-BR`);
-    state.currentMovie = response.data;
-  };
-
-  return { currentMovie, getMovieDetail };
-});
+    async getMovieCredits(movieId) {
+      const { data } = await api.get(`/movie/${movieId}/credits`, {
+        params: { language: 'pt-BR' }
+      });
+      this.currentCast = data.cast;
+    }
+  }
+})

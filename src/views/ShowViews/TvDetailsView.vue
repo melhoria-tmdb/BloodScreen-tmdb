@@ -1,29 +1,27 @@
-
 <script setup>
-  import { defineProps, onMounted } from 'vue';
-  import { useShowStore } from '@/stores/tv';
+import { defineProps, onMounted } from 'vue';
+import { useShowStore } from '@/stores/tv';
 
-  const showStore = useShowStore();
+const showStore = useShowStore();
 
-  const props = defineProps({
-    showId: {
-      type: Number,
-      required: true,
-    },
-  });
+const props = defineProps({
+  showId: {
+    type: Number,
+    required: true,
+  },
+});
 
-  onMounted(async () => {
-    await showStore.getShowDetail(props.showId);
-  });
+onMounted(async () => {
+  await showStore.getShowDetail(props.showId);
+  await showStore.getShowCredits(props.showId);
+});
 </script>
 
 <template>
   <div class="main">
     <div class="content">
-      <img
-        :src="`https://image.tmdb.org/t/p/w185${showStore.currentShow.poster_path}`"
-        :alt="showStore.currentShow.name"
-      />
+      <img :src="`https://image.tmdb.org/t/p/w185${showStore.currentShow.poster_path}`"
+        :alt="showStore.currentShow.name" />
       <div class="details">
         <h1>Série: {{ showStore.currentShow.name }}</h1>
         <p>{{ showStore.currentShow.overview }}</p>
@@ -47,17 +45,23 @@
 
     <p class="produtoras">Produtoras</p>
     <div class="companies">
-      <template
-        v-for="company in showStore.currentShow.production_companies"
-        :key="company.id"
-      >
-        <img
-          v-if="company.logo_path"
-          :src="`https://image.tmdb.org/t/p/w92${company.logo_path}`"
-          :alt="company.name"
-        />
+      <template v-for="company in showStore.currentShow.production_companies" :key="company.id">
+        <img v-if="company.logo_path" :src="`https://image.tmdb.org/t/p/w92${company.logo_path}`" :alt="company.name" />
         <p v-else>{{ company.name }}</p>
       </template>
+    </div>
+
+    <h2 class="cast-title">Elenco</h2>
+
+    <div class="cast-list">
+      <div v-for="actor in showStore.currentCast" :key="actor.id" class="actor-card">
+        <img v-if="actor.profile_path" :src="`https://image.tmdb.org/t/p/w185${actor.profile_path}`"
+          :alt="actor.name" />
+        <div class="actor-info">
+          <p class="actor-name">{{ actor.name }}</p>
+          <p class="actor-character">{{ actor.character }}</p>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -73,13 +77,17 @@
   gap: 2rem;
   padding: 2rem;
 }
-.content{
+
+.content {
   text-align: center;
 }
+
 .companies {
   display: flex;
-  flex-wrap: wrap;       /* para quebrar linhas se necessário */
-  justify-content: center; /* centraliza horizontalmente */
+  flex-wrap: wrap;
+  /* para quebrar linhas se necessário */
+  justify-content: center;
+  /* centraliza horizontalmente */
   align-items: center;
   gap: 2rem;
   margin-top: 0.4rem;
@@ -90,7 +98,8 @@ p {
 }
 
 p.produtoras {
-  text-align: center; /* centraliza o texto "Produtoras" */
+  text-align: center;
+  /* centraliza o texto "Produtoras" */
   font-size: 1.3rem;
   font-weight: 600;
   padding: 1vw 0 0 0;
@@ -100,4 +109,36 @@ p.produtoras {
   margin: 1vw 0 0 0;
 }
 
+.cast-title {
+  font-size: 1.5rem;
+  text-align: center;
+  font-weight: bold;
+}
+
+.cast-list {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.actor-card {
+  width: 120px;
+  text-align: center;
+}
+
+.actor-card img {
+  width: 120px;
+  border-radius: 10px;
+}
+
+.actor-name {
+  font-weight: bold;
+}
+
+.actor-character {
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
 </style>
