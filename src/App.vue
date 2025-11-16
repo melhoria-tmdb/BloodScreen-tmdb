@@ -163,7 +163,8 @@ onUnmounted(() => {
 
       <div v-if="openMenu" class="dropdown-menu">
         <button @click="toggleTheme" class="color-target">
-          <span :class="['mdi rotate', isDarkMode ? 'mdi-weather-night' : 'mdi-white-balance-sunny', rotating ? 'rotate-rotate' : '']"></span>
+          <span
+            :class="['mdi rotate', isDarkMode ? 'mdi-weather-night' : 'mdi-white-balance-sunny', rotating ? 'rotate-rotate' : '']"></span>
         </button>
 
         <button class="color-target" @click="cor">
@@ -194,13 +195,13 @@ onUnmounted(() => {
 
       <div class="menu-buttons">
         <div class="game-buttons">
-        <button v-for="game in games" :key="game.name" @click="openGame(game)">
-          🕹️ {{ game.name }}
-        </button>
+          <button v-for="game in games" :key="game.name" @click="openGame(game)">
+            🕹️ {{ game.name }}
+          </button>
         </div>
         <div class="close-button">
-        <button class="close-menu" @click="showMenu = false">Fechar</button>
-      </div>
+          <button class="close-menu" @click="showMenu = false">Fechar</button>
+        </div>
       </div>
     </div>
   </div>
@@ -209,7 +210,15 @@ onUnmounted(() => {
   <div v-if="currentGame" class="overlay">
     <div class="game-window">
       <button class="close color-target" @click="closeGame"></button>
-      <component :is="currentGame.view" @close="closeGame" />
+      <component
+  v-if="currentGame"
+  :is="currentGame.view"
+  @close="closeGame"
+  @backToMenu="() => {
+    currentGame.value = null
+    showMenu = true
+  }"
+/>
     </div>
   </div>
 </template>
@@ -259,6 +268,7 @@ header {
 #content a {
   text-decoration: none;
 }
+
 #content a:hover {
   color: red !important;
 }
@@ -276,12 +286,14 @@ button {
 }
 
 .menu-container {
-  position: relative; /* referência pro dropdown */
+  position: relative;
+  /* referência pro dropdown */
 }
 
 .dropdown-menu {
   position: absolute;
-  top: 100%; /* logo abaixo do botão */
+  top: 100%;
+  /* logo abaixo do botão */
   right: 1.2vw;
   border: 1px solid;
   border-color: var(--text);
@@ -293,6 +305,7 @@ button {
   padding: 0.5rem;
   z-index: 999;
 }
+
 .dropdown-menu button {
   color: white;
   font-size: 1.6rem;
@@ -301,6 +314,7 @@ button {
   cursor: pointer;
   padding: 0.5rem;
 }
+
 .dropdown-menu button:hover {
   background: #bbbaba;
   border-radius: 6px;
@@ -314,8 +328,15 @@ button {
 }
 
 @keyframes pisca {
-  from { opacity: 1; transform: scale(1); }
-  to   { opacity: 0.4; transform: scale(1.1); }
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  to {
+    opacity: 0.4;
+    transform: scale(1.1);
+  }
 }
 
 /* ============================================================
@@ -324,7 +345,7 @@ button {
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.75);
+  background: rgba(0, 0, 0, 0.75);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -342,18 +363,22 @@ button {
   max-width: calc(100% - 32px);
   border-radius: 12px;
 }
-.game-window h2{
+
+.game-window h2 {
   font-size: 2rem;
 }
-.game-window p{
+
+.game-window p {
   font-size: 1.4rem;
   margin-bottom: 1.4vw;
 }
-.menu-buttons{
+
+.menu-buttons {
   display: flex;
   flex-direction: column;
   gap: 1vw;
 }
+
 .menu-buttons .game-buttons {
   display: flex;
   flex-direction: column;

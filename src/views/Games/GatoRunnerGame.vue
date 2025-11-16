@@ -1,9 +1,14 @@
 <template>
   <div class="runner-wrap">
     <div class="hud">
-      <div id="points">Pontuação: {{ score }}</div>
+      <div id="points">
+        Pontuação: {{ score }} | Recorde: {{ highScore }}
+      </div>
+      <div class="right">
       <button @click="restart" class="restart">Reiniciar</button>
+      <button @click="backToMenu" class="menu">Menu</button>
       <button @click="$emit('close')">Fechar</button>
+      </div>
     </div>
 
     <canvas ref="canvas" :width="canvasW" :height="canvasH" tabindex="0"></canvas>
@@ -17,13 +22,21 @@
     </div>
 
     <div class="controls">
-      <small>Use ESPAÇO ou SETA ↑ para pular</small>
+      <small>Use ESPAÇO ou <span>↑</span> para pular</small>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
+
+const emit = defineEmits(['backToMenu'])
+function backToMenu() {
+  // Envia evento para o app.vue
+  emit('backToMenu')
+}
+
+const highScore = ref(Number(localStorage.getItem('highScore') || 0))
 
 // =================
 // CANVAS / STATE
@@ -38,21 +51,36 @@ let rafId = null
 const score = ref(0)
 const showDefeat = ref(false)
 let isJumping = false
-
-// ground config (centralizado, usado por árvore/tijolos)
 const groundHeight = 14
 
 // =================
 // SPRITES / IMAGENS
 // =================
 const spriteRun = new Image()
-spriteRun.src = '/running.png'
+spriteRun.src = '/cats.png'
 
 const spriteJump = new Image()
 spriteJump.src = '/jumping.png'
 
-const tombstoneImg = new Image()
-tombstoneImg.src = '/grave.png'
+// Obstáculos: múltiplos tipos
+const obstacleImages = []
+
+const tombstone1 = new Image()
+tombstone1.src = '/grave1.png'
+obstacleImages.push(tombstone1)
+
+const tombstone2 = new Image()
+tombstone2.src = '/grave2.png'
+obstacleImages.push(tombstone2)
+
+const tombstone3 = new Image()
+tombstone3.src = '/grave3.png'
+obstacleImages.push(tombstone3)
+
+const tombstone4 = new Image()
+tombstone4.src = '/grave4.png'
+obstacleImages.push(tombstone4)
+
 
 // =================
 // GATO (ANIMAÇÕES)
@@ -64,7 +92,7 @@ const animations = {
 
 const cat = {
   x: 50,
-  y: canvasH - 64 - groundHeight, // alinhado com o chão
+  y: canvasH - 64 - groundHeight,
   w: 64,
   h: 64,
   vy: 0,
@@ -105,7 +133,7 @@ function drawStars() {
 }
 
 // ===========================
-// ÁRVORES (tronco + copa)
+// ÁRVORES
 // ===========================
 let trees = []
 function initTrees(count = 18) {
@@ -113,9 +141,9 @@ function initTrees(count = 18) {
   for (let i = 0; i < count; i++) {
     trees.push({
       x: Math.random() * canvasW,
-      baseY: canvasH - groundHeight, // baseY agora em cima do ground
-      size: Math.random() * 26 + 22, // controla "altura total" da árvore
-      speed: Math.random() * 0.9 + 0.3, // ajuste de parallax (mais lento para ficar agradável)
+      baseY: canvasH - groundHeight,
+      size: Math.random() * 26 + 22,
+      speed: Math.random() * 0.9 + 0.3,
     })
   }
 }
@@ -131,29 +159,23 @@ function updateTrees() {
 }
 function drawTrees() {
   for (const t of trees) {
-    // parâmetros do tronco (consistentes para todas as árvores)
-    const trunkWidth = Math.max(4, Math.floor(t.size * 0.12)) // largura do tronco baseada no tamanho
-    const trunkHeight = Math.max(8, Math.floor(t.size * 0.35)) // altura do tronco
-
+    const trunkWidth = Math.max(4, Math.floor(t.size * 0.12))
+    const trunkHeight = Math.max(8, Math.floor(t.size * 0.35))
     const trunkX = t.x - (trunkWidth / 2)
     const trunkTopY = t.baseY - trunkHeight
-    const trunkBottomY = t.baseY
 
-    // DESENHA TRONCO (acima do chão)
-    ctx.fillStyle = '#2b1606' // tonalidade marrom escura
+    ctx.fillStyle = '#2b1606'
     ctx.fillRect(trunkX, trunkTopY, trunkWidth, trunkHeight)
 
-    // COPA: desenhe a copa *em cima* do tronco (foliageBottom = trunkTopY)
     const foliageBottom = trunkTopY
-    ctx.fillStyle = '#071309' // cor da silhueta da copa
+    ctx.fillStyle = '#071309'
     ctx.beginPath()
-    ctx.moveTo(t.x, t.baseY - t.size)                      // topo
-    ctx.lineTo(t.x - t.size * 0.55, foliageBottom)         // canto esquerdo (na altura do topo do tronco)
-    ctx.lineTo(t.x + t.size * 0.55, foliageBottom)         // canto direito
+    ctx.moveTo(t.x, t.baseY - t.size)
+    ctx.lineTo(t.x - t.size * 0.55, foliageBottom)
+    ctx.lineTo(t.x + t.size * 0.55, foliageBottom)
     ctx.closePath()
     ctx.fill()
 
-    // Sombra leve na copa (profundidade)
     ctx.beginPath()
     ctx.fillStyle = 'rgba(0,0,0,0.12)'
     ctx.moveTo(t.x, t.baseY - t.size * 0.7)
@@ -165,7 +187,7 @@ function drawTrees() {
 }
 
 // ===========================
-// NÉVOA POR PARTÍCULAS (suave)
+// NÉVOA POR PARTÍCULAS
 // ===========================
 let fogParticles = []
 function createFog(count = 36) {
@@ -220,16 +242,14 @@ function drawNightBackground() {
   ctx.fillStyle = g
   ctx.fillRect(0, 0, canvasW, canvasH)
 
-  // lua
   ctx.beginPath()
   ctx.arc(canvasW - 60, 48, 18, 0, Math.PI * 2)
   ctx.fillStyle = '#f2f2e6'
   ctx.fill()
 
-  // chão: desenhar com groundHeight e na posição correta
   const groundGrad = ctx.createLinearGradient(0, canvasH - groundHeight - 6, 0, canvasH)
-  groundGrad.addColorStop(0, '#3E1C00') // topo do ground (um pouco mais claro)
-  groundGrad.addColorStop(1, '#1a0a00') // base mais escura
+  groundGrad.addColorStop(0, '#3E1C00')
+  groundGrad.addColorStop(1, '#1a0a00')
   ctx.fillStyle = groundGrad
   ctx.fillRect(0, canvasH - groundHeight, canvasW, groundHeight)
 }
@@ -239,6 +259,7 @@ function drawNightBackground() {
 // =================
 let obstacles = []
 let spawnTimer = 0
+let nextSpawn = 80 // inicial
 const obstacleWidth = 55
 const obstacleHeight = 50
 const obstacleSpeed = 6
@@ -247,19 +268,30 @@ function updateObstacles() {
   for (const o of obstacles) o.x -= obstacleSpeed
   obstacles = obstacles.filter(o => o.x + o.w > -40)
 
-  if (++spawnTimer > 80) {
+  spawnTimer++
+
+  if (spawnTimer >= nextSpawn) {
+    // Escolhe a imagem do obstáculo
+    const img = obstacleImages[Math.floor(Math.random() * obstacleImages.length)]
+    const scale = 0.9 + Math.random() * 0.3
+    const w = obstacleWidth * scale
+    const h = obstacleHeight * scale
+
     obstacles.push({
       x: canvasW + 10,
-      y: canvasH - obstacleHeight - groundHeight,
-      w: obstacleWidth,
-      h: obstacleHeight,
+      y: canvasH - h - groundHeight,
+      w,
+      h,
+      img,
     })
+
     spawnTimer = 0
+    nextSpawn = 60 + Math.random() * 140
   }
 }
 function drawObstacles() {
   for (const o of obstacles) {
-    if (tombstoneImg && tombstoneImg.complete) ctx.drawImage(tombstoneImg, o.x, o.y, o.w, o.h)
+    if (o.img && o.img.complete) ctx.drawImage(o.img, o.x, o.y, o.w, o.h)
     else {
       ctx.fillStyle = '#2b2b2b'
       ctx.fillRect(o.x, o.y, o.w, o.h)
@@ -288,6 +320,10 @@ function collisionDetection() {
     if (cx1 < ox2 && cx2 > ox1 && cy1 < oy2 && cy2 > oy1) {
       showDefeat.value = true
       cancelAnimationFrame(rafId)
+      if (score.value > highScore.value) {
+        highScore.value = score.value
+        localStorage.setItem('highScore', highScore.value)
+      }
     }
   }
 }
@@ -326,7 +362,6 @@ function updateCat() {
 function loop() {
   ctx.clearRect(0, 0, canvasW, canvasH)
 
-  // background back -> front
   drawNightBackground()
 
   updateStars()
@@ -338,7 +373,6 @@ function loop() {
   updateFogParticles()
   drawFogParticles()
 
-  // game
   updateCat()
   updateObstacles()
   collisionDetection()
@@ -388,7 +422,6 @@ function restart() {
   obstacles = []
   showDefeat.value = false
 
-  // reset background
   initStars()
   initTrees()
   createFog(36)
@@ -402,8 +435,7 @@ function handleRestart() { restart() }
 let loaded = 0
 function tryStart() {
   loaded++
-  // esperam-se 3 imagens: run, jump, tombstone
-  if (loaded === 3) {
+  if (loaded === 6) { // run, jump, tomb1, tomb2, tomb3, tomb4
     initStars()
     initTrees()
     createFog(36)
@@ -417,12 +449,17 @@ onMounted(() => {
 
   spriteRun.onload = tryStart
   spriteJump.onload = tryStart
-  tombstoneImg.onload = tryStart
+  tombstone1.onload = tryStart
+  tombstone2.onload = tryStart
+  tombstone3.onload = tryStart
+  tombstone4.onload = tryStart
 
-  // se estiver em cache, acionamos também
   if (spriteRun.complete) tryStart()
   if (spriteJump.complete) tryStart()
-  if (tombstoneImg.complete) tryStart()
+  if (tombstone1.complete) tryStart()
+  if (tombstone2.complete) tryStart()
+  if (tombstone3.complete) tryStart()
+  if (tombstone4.complete) tryStart()
 
   window.addEventListener('keydown', keyDownHandler)
 })
@@ -449,12 +486,17 @@ canvas {
 }
 
 .hud {
+  display: flex;
+  flex-wrap: wrap;
   width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
   color: #fff;
   margin-bottom: 6px;
+}
+.hud .right {
+  gap: 2vw;
 }
 
 #points {
@@ -477,12 +519,11 @@ canvas {
   text-align: center;
 }
 
-.restart {
-  margin-left: 22vw;
-  position: absolute;
+.controls small span {
+  font-size: 0.9rem;
 }
 
-/* OVERLAY: full viewport */
+
 .overlay {
   position: fixed;
   top: 0;

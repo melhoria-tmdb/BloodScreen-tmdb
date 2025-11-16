@@ -2,7 +2,7 @@
   <div class="breakout-wrap">
     <div class="hud">
       <div class="left">
-        <div>Pontuação: {{ score }}</div>
+        <div>Pontuação: {{ score }} | Recorde: {{ highScoreBreakout }}</div>
         <div id="lives">Vidas: {{ lives }}</div>
       </div>
       <div class="right">
@@ -30,6 +30,8 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
+
+const highScoreBreakout = ref(Number(localStorage.getItem('highScoreBreakout') || 0))
 
 const canvas = ref(null)
 const canvasW = 700
@@ -178,31 +180,31 @@ function updateBall() {
     ball.vy = Math.abs(ball.vy)
   }
 
-// ==== paddle collision (melhorado) ====
-if (ball.vy > 0) {
-  const nextY = ball.y + ball.vy
-  const willCrossPaddle =
-    ball.y + ball.r <= paddle.y && nextY + ball.r >= paddle.y
+  // ==== paddle collision (melhorado) ====
+  if (ball.vy > 0) {
+    const nextY = ball.y + ball.vy
+    const willCrossPaddle =
+      ball.y + ball.r <= paddle.y && nextY + ball.r >= paddle.y
 
-  const withinHorizontal =
-    ball.x + ball.r > paddle.x &&
-    ball.x - ball.r < paddle.x + paddle.w
+    const withinHorizontal =
+      ball.x + ball.r > paddle.x &&
+      ball.x - ball.r < paddle.x + paddle.w
 
-  if (willCrossPaddle && withinHorizontal) {
-    // calcula ponto de colisão
-    const collidePoint = (ball.x - (paddle.x + paddle.w / 2)) / (paddle.w / 2)
-    const angle = collidePoint * (Math.PI / 2.5)
+    if (willCrossPaddle && withinHorizontal) {
+      // calcula ponto de colisão
+      const collidePoint = (ball.x - (paddle.x + paddle.w / 2)) / (paddle.w / 2)
+      const angle = collidePoint * (Math.PI / 2.5)
 
-    // velocidade mantida
-    const speed = Math.sqrt(ball.vx ** 2 + ball.vy ** 2)
+      // velocidade mantida
+      const speed = Math.sqrt(ball.vx ** 2 + ball.vy ** 2)
 
-    ball.vx = speed * Math.sin(angle)
-    ball.vy = -Math.abs(speed * Math.cos(angle))
+      ball.vx = speed * Math.sin(angle)
+      ball.vy = -Math.abs(speed * Math.cos(angle))
 
-    // reposiciona exatamente acima do paddle
-    ball.y = paddle.y - ball.r - 0.5
+      // reposiciona exatamente acima do paddle
+      ball.y = paddle.y - ball.r - 0.5
+    }
   }
-}
 
 
   // ==== derrota ====
@@ -211,7 +213,12 @@ if (ball.vy > 0) {
     if (lives.value <= 0) {
       showDefeat.value = true
       cancelAnimationFrame(rafId)
+    if (score.value > highScoreBreakout.value) {
+        highScoreBreakout.value = score.value
+        localStorage.setItem('highScoreBreakout', highScoreBreakout.value)
+      }
       return
+
     }
 
     // reset parcial
