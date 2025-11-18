@@ -1,23 +1,38 @@
+<script setup>
+
+</script>
+
 <template>
-    <div>
-      <h1>Home</h1>
+    <body>
+        <section class="banner">
+            <div class="left">
+                <div class="linha">
 
-      <h2 class="center-page">Au au...</h2>
-    </div>
+                </div>
+                <div class="content">
+                    <h1>Titulo do filme</h1>
+                    <p>Sinopse do filme</p>
+                    <button>Trailer</button>
+                </div>
+            </div>
+        </section>
+        </body>
 </template>
-<style scoped>
 
-
-
-h2 {
-  font-size: 1rem;
-  color: transparent;
-  position: absolute;
-  right: 19%;
-  bottom: 10%;
+<style>
+body {
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
 }
-h2:hover{
-  color: red;
-  cursor:grab;
+section.banner {
+    background-image: url('/imgs/O telefone preto fundo.png');
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
 }
 </style>
