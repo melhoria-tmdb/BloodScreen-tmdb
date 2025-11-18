@@ -145,14 +145,14 @@ onUnmounted(() => {
 
     <nav>
       <div id="bloodscreen">
-        <router-link to="/" class="color-target">BloodScreen</router-link>
+        <router-link to="/" class="color-target">BLOODSCREEN</router-link>
       </div>
     </nav>
 
     <nav>
       <div id="content">
-        <router-link to="/filmes" class="color-target">Filmes</router-link>
-        <router-link to="/tv" class="color-target">Séries</router-link>
+        <router-link to="/filmes" class="color-target">FILMES</router-link>
+        <router-link to="/tv" class="color-target">SÉRIES</router-link>
       </div>
     </nav>
 
@@ -244,20 +244,20 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: transparent;
-  color: var(--text);
+  background-color: transparent;
   z-index: 1000;
+  margin-top: 1vw;
 }
 
 #bloodscreen a {
-  font-size: 1.5rem;
+  font-size: 30px;
   font-weight: bold;
+  font-family: 'Metal Mania', regular;
 }
 
 #content {
   display: flex;
   gap: 3vw;
-
   position: absolute;
   top: 50%;
   left: 50%;
@@ -266,6 +266,9 @@ header {
 
 #content a {
   text-decoration: none;
+  font-family: 'K2D', thin;
+  font-weight: 100;
+  font-size: 20px;
 }
 #content a:hover {
   color: red !important;
@@ -392,7 +395,6 @@ button {
   border-radius: 12px;
   padding: 1.4vw;
 }
-
 
 .close {
   position: absolute;
