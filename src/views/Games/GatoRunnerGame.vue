@@ -1,8 +1,10 @@
 <template>
   <div class="runner-wrap">
     <div class="hud">
+      <div class="left">
       <div id="points">
         Pontuação: {{ score }} | Recorde: {{ highScore }}
+      </div>
       </div>
       <div class="right">
       <button @click="restart" class="restart">Reiniciar</button>
@@ -486,8 +488,6 @@ canvas {
 }
 
 .hud {
-  display: flex;
-  flex-wrap: wrap;
   width: 100%;
   display: flex;
   justify-content: space-between;
@@ -496,7 +496,8 @@ canvas {
   margin-bottom: 6px;
 }
 .hud .right {
-  gap: 2vw;
+  gap: 1vw;
+  display: flex;
 }
 
 #points {
@@ -522,7 +523,6 @@ canvas {
 .controls small span {
   font-size: 0.9rem;
 }
-
 
 .overlay {
   position: fixed;

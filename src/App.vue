@@ -215,7 +215,7 @@ onUnmounted(() => {
   :is="currentGame.view"
   @close="closeGame"
   @backToMenu="() => {
-    currentGame.value = null
+    currentGame = null
     showMenu = true
   }"
 />

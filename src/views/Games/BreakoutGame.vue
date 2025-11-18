@@ -7,6 +7,7 @@
       </div>
       <div class="right">
         <button @click="restart" class="restart">Reiniciar</button>
+        <button @click="backToMenu" class="menu">Menu</button>
         <button @click="$emit('close')">Fechar</button>
       </div>
     </div>
@@ -30,6 +31,12 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
+
+const emit = defineEmits(['backToMenu'])
+function backToMenu() {
+  // Envia evento para o app.vue
+  emit('backToMenu')
+}
 
 const highScoreBreakout = ref(Number(localStorage.getItem('highScoreBreakout') || 0))
 
@@ -355,7 +362,7 @@ canvas {
 
 .hud .right {
   display: flex;
-  gap: 2vw;
+  gap: 1vw;
 }
 
 .hud button {
