@@ -13,6 +13,7 @@
 
   onMounted(async () => {
     await movieStore.getMovieDetail(props.movieId);
+    await movieStore.getMovieCredits(props.movieId); // <-- AQUI
   });
 </script>
 
@@ -36,6 +37,7 @@
             movieStore.currentMovie.runtime % 60
           }}min
         </p>
+
       </div>
     </div>
 
@@ -54,7 +56,28 @@
         <p v-else>{{ company.name }}</p>
       </template>
     </div>
+
+    <h2 class="cast-title">Elenco</h2>
+
+    <div class="cast-list">
+      <div
+        v-for="actor in movieStore.currentCast"
+        :key="actor.id"
+        class="actor-card"
+      >
+        <img
+          v-if="actor.profile_path"
+          :src="`https://image.tmdb.org/t/p/w185${actor.profile_path}`"
+          :alt="actor.name"
+        />
+        <div class="actor-info">
+          <p class="actor-name">{{ actor.name }}</p>
+          <p class="actor-character">{{ actor.character }}</p>
+        </div>
+      </div>
+    </div>
   </div>
+
 </template>
 
 
@@ -78,6 +101,7 @@
   align-items: center;
   gap: 2rem;
   margin-top: 0.4rem;
+  margin-bottom: 0.4rem;
 }
 
 p {
@@ -91,5 +115,38 @@ p.produtoras {
 }
 .orcamento {
   margin: 1vw 0 0 0;
+}
+.cast-title {
+  margin-top: rem;
+  font-size: 1.5rem;
+  text-align: center;
+  font-weight: bold;
+}
+
+.cast-list {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.actor-card {
+  width: 120px;
+  text-align: center;
+}
+
+.actor-card img {
+  width: 120px;
+  border-radius: 10px;
+}
+
+.actor-name {
+  font-weight: bold;
+}
+
+.actor-character {
+  font-size: 0.9rem;
+  opacity: 0.7;
 }
 </style>
