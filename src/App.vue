@@ -235,7 +235,6 @@ onUnmounted(() => {
   transition: color 0.8s ease !important;
   color: var(--custom-color, var(--text)) !important;
 }
-
 /* ============================================================
    Header
 ============================================================ */
@@ -268,9 +267,11 @@ header {
 #content a {
   text-decoration: none;
 }
-
 #content a:hover {
   color: red !important;
+}
+#content a.router-link-active {
+  color: rgb(240, 29, 29) !important;
 }
 
 /* ============================================================
