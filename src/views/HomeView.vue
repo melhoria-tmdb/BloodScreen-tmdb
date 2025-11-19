@@ -46,10 +46,10 @@ body {
 section.banner {
     width: 100%;
     /* Altura total do viewport */
-    height: 100vh; 
+    height: 100vh;
     display: flex;
     /* Alinha o conteúdo (.left) na parte inferior do banner */
-    align-items: flex-end; 
+    align-items: flex-end;
     justify-content: flex-start;
     padding-left: 5vw;
     /* Adiciona padding inferior para compensar o alinhamento 'flex-end' */
@@ -57,9 +57,9 @@ section.banner {
 }
 .left {
     /* Faz com que a linha (.linha-e-bolas) e o conteúdo (.content) fiquem lado a lado */
-    display: flex; 
+    display: flex;
     /* Alinha os itens verticalmente (centraliza-os no eixo transversal) */
-    align-items: center; 
+    align-items: center;
     height: auto; /* Deixa a altura ser definida pelo conteúdo */
     width: auto;
 }
@@ -67,10 +67,10 @@ section.banner {
 /* 2. Estilo para .linha-e-bolas: Define o contêiner da linha e das bolas */
 .linha-e-bolas {
     /* Define o contêiner como relativo para que as bolas absolutas funcionem */
-    position: relative; 
+    position: relative;
     /* Altura total para que a linha preencha o espaço vertical do banner */
-    height: 80vh; 
-    width: 20px; 
+    height: 80vh;
+    width: 20px;
     /* Garante que a linha fique na esquerda e o conteúdo na direita */
     margin-right: 56px; /* Espaço entre a linha e o texto do .content */
 }
@@ -78,17 +78,17 @@ section.banner {
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
-    width: 4px; 
-    background: white; 
-    z-index: 1; 
+    width: 4px;
+    background: white;
+    z-index: 1;
 }
 
 /* 1. Segmento Inferior (Do chão até o início da bola-1) */
 .linha-inferior {
     height: 80px; /* Altura da linha antes da primeira bola */
-    bottom: 1px; 
+    bottom: 1px;
     /* GRADIENTE: Para dar o efeito de desfoque no final (topo deste segmento) */
-    background: linear-gradient(to top, white 0%, rgba(255, 255, 255, 0) 100%); 
+    background: linear-gradient(to top, white 0%, rgba(255, 255, 255, 0) 100%);
 }
 
 /* 2. Segmento Superior (Do fim da bola-4 até o topo do contêiner) */
@@ -96,23 +96,23 @@ section.banner {
 .linha-superior {
     /* 110px de sobra - altura da bola-4 (20px) - margem */
     height: 380px; /* Ajuste a altura para que o topo fique no ponto desejado */
-    bottom: 240px; /* bottom da bola-4 (240px) + altura da bola-4 (20px) = 260px */
-    
+    bottom: 255px; /* bottom da bola-4 (240px) + altura da bola-4 (20px) = 260px */
+
     /* GRADIENTE: Para dar o efeito de desfoque no final (topo deste segmento) */
-    background: linear-gradient(to bottom, white 0%, rgba(255, 255, 255, 0) 100%); 
+    background: linear-gradient(to bottom, white 0%, rgba(255, 255, 255, 0) 100%);
 }
 
 
 
 /* 4. Estilo base para todas as bolas: */
 .bola {
-    position: absolute; 
+    position: absolute;
     left: 50%;
-    transform: translateX(-50%); 
-    width: 20px; 
-    height: 20px; 
-    background-color: white; 
-    border-radius: 50%; 
+    transform: translateX(-50%);
+    width: 20px;
+    height: 20px;
+    background-color: white;
+    border-radius: 50%;
     z-index: 2;
 }
 
