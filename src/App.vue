@@ -240,11 +240,11 @@ onUnmounted(() => {
 ============================================================ */
 header {
   position: relative;
+  background-color: transparent;
   height: 3rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: transparent;
   z-index: 1000;
   margin-top: 1vw;
 }
