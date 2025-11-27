@@ -35,9 +35,11 @@ body {
   background: var(--bg);
   color: var(--text);
   transition: background-color .2s, color .2s;
+   overflow: hidden;
 }
 
 /* header usa as mesmas variáveis */
+
 header {
   height: 3rem;
   display: flex;

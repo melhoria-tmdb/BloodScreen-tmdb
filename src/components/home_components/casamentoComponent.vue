@@ -39,7 +39,6 @@ const bg = '/imgs/Casamento sangrento fundo.png'
   background-position: center;
   background-repeat: no-repeat;
 
-  /* obrigatório p/ remover scroll horizontal/vertical */
   overflow: hidden;
   display: flex;
 }

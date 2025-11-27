@@ -238,15 +238,17 @@ onUnmounted(() => {
 /* ============================================================
    Header
 ============================================================ */
+
 header {
   position: relative;
-  background-color: transparent;
+  background-color: var(--header-bg) !important;
+  color: var(--text);
   height: 3rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   z-index: 1000;
-  margin-top: 1vw;
+  margin-top: 2vw;
 }
 
 #bloodscreen a {
@@ -285,7 +287,7 @@ button {
   border: none;
   font-size: 1.6rem;
   padding-right: 2.5rem;
-  color: white;
+  color: var(--text);
   cursor: pointer;
 }
 
