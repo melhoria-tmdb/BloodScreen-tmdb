@@ -126,7 +126,7 @@ function handleClickOutside(event) {
     return
   }
 
-  // Qualquer clique fora → fecha
+  // Qualquer clique fora → fech font-weight: 600;a
   openMenu.value = false
 }
 
@@ -252,6 +252,7 @@ header {
 #bloodscreen a {
   font-size: 1.5rem;
   font-weight: bold;
+  font-family: 'K2D', thin;
 }
 
 #content {

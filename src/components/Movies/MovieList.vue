@@ -1,10 +1,37 @@
 <script setup>
 const props = defineProps({ movies: Array })
 const emit = defineEmits(['select'])
+
+// Função para gerar as estrelas com base na nota
+function estrelas(rating) {
+  const stars = Math.round(rating / 2);  // Converte a avaliação de 1-10 para 1-5 estrelas
+  let starHTML = '';
+
+  // Adiciona as estrelas preenchidas
+  for (let i = 0; i < stars; i++) {
+    starHTML += '★';  // Estrela cheia
+  }
+
+  // Adiciona as estrelas vazias
+  for (let i = stars; i < 5; i++) {
+    starHTML += '☆';  // Estrela vazia
+  }
+
+  return starHTML;
+}
 </script>
 
 <template>
-  <div class="movie-list">
+  <section>
+    <div>
+      <div id="gore">
+        <img src="" alt="">
+
+      </div>
+    </div>
+  </section>
+  <section>
+    <div class="movie-list">
     <div
       v-for="movie in movies"
       :key="movie.id"
@@ -13,6 +40,8 @@ const emit = defineEmits(['select'])
     >
       <img :src="`https://image.tmdb.org/t/p/w500${movie.poster_path}`" />
       <div class="movie-details">
+        <!-- Exibir as estrelas em cima do título -->
+        <p class="movie-stars">{{ estrelas(movie.vote_average) }}</p> <!-- Exibe as estrelas -->
         <p class="movie-title">{{ movie.title }}</p>
         <p class="movie-date">
           {{ new Date(movie.release_date).toLocaleDateString('pt-BR') }}
@@ -20,6 +49,8 @@ const emit = defineEmits(['select'])
       </div>
     </div>
   </div>
+  </section>
+  
 </template>
 
 <style scoped>
@@ -32,19 +63,19 @@ const emit = defineEmits(['select'])
 }
 
 .movie-card {
-  width: 15rem;
+  width: 300px;
   height: 30rem;
   border-radius: 0.75rem;
   overflow: hidden;
-  background-color: #111;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  background-color: transparent;
   display: flex;
   flex-direction: column;
   align-items: center;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  margin: 1vw;
 }
 
-.movie-card:hover {
+.movie-card img:hover {
   transform: scale(1.04);
   box-shadow: 0 6px 20px rgba(255, 0, 0, 0.25);
   cursor: pointer;
@@ -52,21 +83,31 @@ const emit = defineEmits(['select'])
 
 .movie-card img {
   width: 100%;
-  height: 21rem;
+  height: 400px;
   object-fit: cover;
-  border-bottom: 2px solid #220000;
+  border-radius: 20px;
 }
 
 /* Container de texto */
 .movie-details {
   flex: 1;
   width: 100%;
-  padding: 0.7rem;
+  padding: 0rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
   text-align: center;
+  position: relative;  /* Para a posição das estrelas */
+}
+
+/* Estrelas de avaliação */
+.movie-stars {
+  font-size: 1.5rem;
+  color: #ffffff;  /* Cor dourada */
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 /* Título do filme */
@@ -76,20 +117,21 @@ const emit = defineEmits(['select'])
   color: #fff;
   text-align: center;
   line-height: 1.3rem;
-  margin-bottom: 0.4rem;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  margin-top: 2vw;
+  margin-bottom: 0.1vw;
+  font-family: 'K2D', thin;
 }
 
 /* Data de lançamento */
 .movie-date {
   font-size: 0.85rem;
-  color: #bfbfbf;
-  margin-top: 0.2rem;
-  margin-bottom: 0.5rem;
+  color: #ffffff;
+
 }
 
 /* Gêneros */
