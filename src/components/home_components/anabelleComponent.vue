@@ -20,10 +20,7 @@ const bg = '/imgs/Annabelle fundo.png'
                 <div class="content">
                     <h1>Annabelle</h1>
                     <p>
-                        John Form acha que encontrou o presente ideal para sua esposa grávida, uma boneca vintage. No
-                        entanto, a alegria do casal não dura muito. Uma noite terrível, membros de uma seita satânica
-                        invadem a casa do casal em um ataque violento. Ao tentarem invocar um demônio, eles mancham a
-                        boneca de sangue, tornando-a receptora de uma entidade do mal.
+                        John Form acredita ter encontrado o presente perfeito para sua esposa grávida ao comprar uma boneca vintage, mas a felicidade dura pouco: em uma noite aterrorizante, membros de uma seita satânica invadem sua casa em um ataque brutal e, ao tentarem invocar um demônio, mancham a boneca de sangue, transformando-a em receptáculo de uma entidade maligna que passa a assombrar o casal.
                     </p>
                     <button class="trailer">TRAILER</button>
                 </div>

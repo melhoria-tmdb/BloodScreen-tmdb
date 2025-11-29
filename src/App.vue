@@ -240,15 +240,19 @@ onUnmounted(() => {
 ============================================================ */
 
 header {
-  position: relative;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
   background-color: var(--header-bg) !important;
   color: var(--text);
   height: 3rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  z-index: 1000;
-  margin-top: 2vw;
+  margin-top: 1.3vw;
+  padding: 0 2rem;
 }
 
 #bloodscreen a {
@@ -299,7 +303,6 @@ button {
 .dropdown-menu {
   position: absolute;
   top: 100%;
-  /* logo abaixo do botão */
   right: 1.2vw;
   border: 1px solid;
   border-color: var(--text);
