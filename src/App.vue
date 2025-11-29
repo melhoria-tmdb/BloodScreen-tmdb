@@ -1,7 +1,11 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import BreakoutGame from './views/Games/BreakoutGame.vue'
 import GatoRunnerGame from './views/Games/GatoRunnerGame.vue'
+
+// ⬅️ NOVO: Inicializar a rota para checagem de página
+const route = useRoute()
 
 /* ============================================================
    TEMA (Light/Dark)
@@ -105,6 +109,12 @@ onMounted(() => window.addEventListener('keydown', handleKey))
 onUnmounted(() => window.removeEventListener('keydown', handleKey))
 
 /* ============================================================
+   LÓGICA DO MENU
+============================================================ */
+// ⬅️ NOVO: Propriedade computada para saber se estamos na Home
+const isHome = computed(() => route.path === '/')
+
+/* ============================================================
    MENU HEADER MOBILE
 ============================================================ */
 const openMenu = ref(false)
@@ -115,16 +125,16 @@ function Menu() {
    DETECTOR ClIQUE
 ============================================================ */
 function handleClickOutside(event) {
-    const menuSidebar = document.querySelector('.sidebar-menu')
-    const menuButton = document.getElementById('Menu')
+  const menuSidebar = document.querySelector('.sidebar-menu')
+  const menuButton = document.getElementById('Menu')
 
 
-    if (!openMenu.value) return
+  if (!openMenu.value) return
 
-    if (menuSidebar?.contains(event.target) || menuButton?.contains(event.target)) {
-        return
-    }
-    openMenu.value = false
+  if (menuSidebar?.contains(event.target) || menuButton?.contains(event.target)) {
+    return
+  }
+  openMenu.value = false
 }
 
 onMounted(() => {
@@ -166,9 +176,10 @@ onUnmounted(() => {
     <router-view />
   </main>
 
-<transition name="slide-in">
-    <div v-if="openMenu" class="sidebar-overlay" @click.self="Menu">
-      <div class="sidebar-menu">
+  <transition name="slide-in">
+    <div v-if="openMenu" class="sidebar-overlay" @click.self="Menu"
+      :style="{ backgroundColor: isHome ? `rgba(var(--slide-theme-color), 0.5)` : 'rgba(0, 0, 0, 0.5)' }">
+      <div class="sidebar-menu" :style="{ backgroundColor: isHome ? `rgb(var(--slide-theme-color))` : 'var(--bg)' }">
         <div class="sidebar-header">
           <router-link to="/" class="color-target" @click="Menu">BLOODSCREEN</router-link>
         </div>
@@ -208,10 +219,9 @@ onUnmounted(() => {
         </div>
       </div>
     </div>
-</transition>
+  </transition>
 
 
-  <!-- MENU DE JOGOS -->
   <div v-if="showMenu" class="overlay">
     <div class="game-window menu">
       <h2>🎮 Arcade Secreto</h2>
@@ -230,21 +240,22 @@ onUnmounted(() => {
     </div>
   </div>
 
-  <!-- JOGO -->
   <div v-if="currentGame" class="overlay">
     <div class="game-window">
       <button class="close color-target" @click="closeGame"></button>
+
       <component v-if="currentGame" :is="currentGame.view" @close="closeGame" @backToMenu="() => {
         currentGame = null
         showMenu = true
       }" />
+
     </div>
   </div>
 </template>
 
 <style>
 /* ============================================================
-   Cores globais
+Cores globais
 ============================================================ */
 :root {
   --custom-color: unset;
@@ -256,7 +267,7 @@ onUnmounted(() => {
 }
 
 /* ============================================================
-   Header
+Header
 ============================================================ */
 
 header {
@@ -306,7 +317,7 @@ header {
 }
 
 /* ============================================================
-  SIDEBAR / DRAWER
+ SIDEBAR / DRAWER
 ============================================================ */
 button {
   background: none;
@@ -315,17 +326,23 @@ button {
   color: white;
   cursor: pointer;
 }
+
 .menu-container {
   position: relative;
 }
+
 .sidebar-overlay {
   position: fixed;
   top: 0;
   right: 0;
   width: 100%;
   height: 100%;
+
+  /* Transição de cor para suavizar (mantida) */
   transition: background-color 0.8s ease;
+
   z-index: 10000;
+  /* Fundo definido no style inline (template) */
 }
 
 .sidebar-menu {
@@ -334,10 +351,14 @@ button {
   right: 0;
   width: 320px;
   height: 100%;
+  /* Transição de cor para suavizar (mantida) */
   transition: background-color 0.8s ease;
-  background-color: rgba(var(--slide-theme-color), 0.5);
+
+  /* Fundo definido no style inline (template) */
   color: var(--text);
-  padding: 50px 0;
+  /* 💥 AJUSTE: Redução do padding superior para subir o cabeçalho */
+  padding: 20px 0;
+
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -348,6 +369,7 @@ button {
   align-items: center;
   text-align: center;
   margin-bottom: 20px;
+  /* (Removido margin-top negativa, já que o padding superior foi ajustado) */
 }
 
 .sidebar-header a {
@@ -385,7 +407,8 @@ button {
 
 .menu-item:hover {
   background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
+  border-radius: 4px;
+  /* Ajuste para o valor padrão, 20px era muito arredondado */
 }
 
 /* Estilo para "Voltar" (Footer) */
@@ -402,7 +425,7 @@ button {
 
 
 /* ============================================================
-  SIDEBAR ANIMAÇÃO
+ SIDEBAR ANIMAÇÃO
 ============================================================ */
 /* Define a transição para ambos: o menu e o overlay */
 .slide-in-enter-active,
@@ -436,7 +459,7 @@ button {
 }
 
 /* ============================================================
-   Balada animação
+Balada animação
 ============================================================ */
 .balada.active {
   animation: pisca 0.3s infinite alternate;
@@ -455,7 +478,7 @@ button {
 }
 
 /* ============================================================
-   Jogos
+ Jogos
 ============================================================ */
 .overlay {
   position: fixed;
