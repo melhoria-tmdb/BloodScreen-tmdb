@@ -324,9 +324,7 @@ button {
   right: 0;
   width: 100%;
   height: 100%;
-
   transition: background-color 0.8s ease;
-
   z-index: 10000;
 }
 
@@ -387,6 +385,7 @@ button {
 
 .menu-item:hover {
   background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
 }
 
 /* Estilo para "Voltar" (Footer) */
