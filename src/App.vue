@@ -115,19 +115,16 @@ function Menu() {
    DETECTOR ClIQUE
 ============================================================ */
 function handleClickOutside(event) {
-  const menu = document.querySelector('.dropdown-menu')
-  const menuButton = document.getElementById('Menu')
+    const menuSidebar = document.querySelector('.sidebar-menu')
+    const menuButton = document.getElementById('Menu')
 
-  // Se o menu não está aberto, ignora
-  if (!openMenu.value) return
 
-  // Se clicou dentro do menu ou no botão do menu → não fecha
-  if (menu?.contains(event.target) || menuButton?.contains(event.target)) {
-    return
-  }
+    if (!openMenu.value) return
 
-  // Qualquer clique fora → fecha
-  openMenu.value = false
+    if (menuSidebar?.contains(event.target) || menuButton?.contains(event.target)) {
+        return
+    }
+    openMenu.value = false
 }
 
 onMounted(() => {
@@ -161,24 +158,6 @@ onUnmounted(() => {
         <span class="mdi mdi-menu"></span>
       </button>
 
-      <div v-if="openMenu" class="dropdown-menu">
-        <button @click="toggleTheme" class="color-target">
-          <span
-            :class="['mdi rotate', isDarkMode ? 'mdi-weather-night' : 'mdi-white-balance-sunny', rotating ? 'rotate-rotate' : '']"></span>
-        </button>
-
-        <button class="color-target" @click="cor">
-          <span class="mdi mdi-palette"></span>
-        </button>
-
-        <button class="color-target balada" :class="{ active: baladaAtiva }" @click="balada">
-          <span class="mdi mdi-auto-mode"></span>
-        </button>
-
-        <button class="color-target reset" @click="resetCor">
-          <span class="mdi mdi-refresh"></span>
-        </button>
-      </div>
     </div>
 
   </header>
@@ -186,6 +165,51 @@ onUnmounted(() => {
   <main>
     <router-view />
   </main>
+
+<transition name="slide-in">
+    <div v-if="openMenu" class="sidebar-overlay" @click.self="Menu">
+      <div class="sidebar-menu">
+        <div class="sidebar-header">
+          <router-link to="/" class="color-target" @click="Menu">BLOODSCREEN</router-link>
+        </div>
+
+        <div class="sidebar-content">
+          <router-link to="/" class="menu-item color-target" @click="Menu">
+            <span class="mdi mdi-home-variant-outline"></span> Home
+          </router-link>
+
+          <div class="menu-item color-target" @click="cor">
+            <span class="mdi mdi-palette"></span> Aparência
+          </div>
+
+          <div class="menu-item color-target" @click="toggleTheme">
+            <span
+              :class="['mdi rotate', isDarkMode ? 'mdi-weather-night' : 'mdi-white-balance-sunny', rotating ? 'rotate-rotate' : '']"></span>
+            Modo
+          </div>
+
+          <div class="menu-item color-target balada" :class="{ active: baladaAtiva }" @click="balada">
+            <span class="mdi mdi-auto-mode"></span> Automático
+          </div>
+
+          <div class="menu-item color-target" @click="cor">
+            <span class="mdi mdi-account-star"></span> Celebridades
+          </div>
+
+          <div class="menu-item color-target" @click="resetCor">
+            <span class="mdi mdi-reload"></span> Resetar
+          </div>
+        </div>
+
+        <div class="sidebar-footer">
+          <div class="menu-item color-target" @click="Menu">
+            <span class="mdi mdi-arrow-left-circle"></span> Voltar
+          </div>
+        </div>
+      </div>
+    </div>
+</transition>
+
 
   <!-- MENU DE JOGOS -->
   <div v-if="showMenu" class="overlay">
@@ -210,15 +234,10 @@ onUnmounted(() => {
   <div v-if="currentGame" class="overlay">
     <div class="game-window">
       <button class="close color-target" @click="closeGame"></button>
-      <component
-  v-if="currentGame"
-  :is="currentGame.view"
-  @close="closeGame"
-  @backToMenu="() => {
-    currentGame = null
-    showMenu = true
-  }"
-/>
+      <component v-if="currentGame" :is="currentGame.view" @close="closeGame" @backToMenu="() => {
+        currentGame = null
+        showMenu = true
+      }" />
     </div>
   </div>
 </template>
@@ -235,6 +254,7 @@ onUnmounted(() => {
   transition: color 0.8s ease !important;
   color: var(--custom-color, var(--text)) !important;
 }
+
 /* ============================================================
    Header
 ============================================================ */
@@ -246,13 +266,12 @@ header {
   width: 100%;
   z-index: 1000;
   background-color: var(--header-bg) !important;
-  color: var(--text);
   height: 3rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-top: 1.3vw;
-  padding: 0 2rem;
+  padding: 0 4rem;
 }
 
 #bloodscreen a {
@@ -266,66 +285,155 @@ header {
   gap: 3vw;
   position: absolute;
   top: 50%;
-  left: 50%;
+  left: 52%;
   transform: translate(-50%, -50%);
 }
 
 #content a {
   text-decoration: none;
+  color: white !important;
   font-family: 'K2D', thin;
   font-weight: 100;
   font-size: 20px;
 }
+
 #content a:hover {
   color: red !important;
 }
+
 #content a.router-link-active {
   color: rgb(240, 29, 29) !important;
 }
 
 /* ============================================================
-   Dropdown
+  SIDEBAR / DRAWER
 ============================================================ */
 button {
   background: none;
   border: none;
   font-size: 1.6rem;
-  color: var(--text);
+  color: white;
   cursor: pointer;
 }
-
 .menu-container {
   position: relative;
-  /* referência pro dropdown */
+}
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+
+  transition: background-color 0.8s ease;
+
+  z-index: 10000;
 }
 
-.dropdown-menu {
+.sidebar-menu {
   position: absolute;
-  top: 100%;
-  right: 1.2vw;
-  border: 1px solid;
-  border-color: var(--text);
-  background: var(--bg);
-  border-radius: 8px;
+  top: 0;
+  right: 0;
+  width: 320px;
+  height: 100%;
+  transition: background-color 0.8s ease;
+  background-color: rgba(var(--slide-theme-color), 0.5);
+  color: var(--text);
+  padding: 50px 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: -4px 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.sidebar-header {
+  align-items: center;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.sidebar-header a {
+  font-size: 30px;
+  font-weight: bold;
+  font-family: 'Metal Mania', regular;
+  text-decoration: none;
+  color: inherit;
+}
+
+.sidebar-content,
+.sidebar-footer {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 0.5rem;
-  z-index: 999;
+  padding: 0 20px;
 }
 
-.dropdown-menu button {
-  color: white;
-  font-size: 1.6rem;
-  border: none;
-  background: none;
+.menu-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  font-size: 1.2rem;
+  font-family: 'K2D', sans-serif;
+  font-weight: 500;
   cursor: pointer;
-  padding: 0.5rem;
+  border-radius: 4px;
+  text-decoration: none;
 }
 
-.dropdown-menu button:hover {
-  background: #bbbaba;
-  border-radius: 6px;
+.menu-item span.mdi {
+  font-size: 1.4rem;
+  margin-right: 15px;
+}
+
+.menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Estilo para "Voltar" (Footer) */
+.sidebar-footer {
+  border-top: 1px solid var(--text);
+  padding-top: 20px;
+  margin-top: 20px;
+}
+
+.sidebar-footer .menu-item {
+  color: var(--nav-link-hover, red);
+  /* Destaca a cor do botão Voltar */
+}
+
+
+/* ============================================================
+  SIDEBAR ANIMAÇÃO
+============================================================ */
+/* Define a transição para ambos: o menu e o overlay */
+.slide-in-enter-active,
+.slide-in-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.slide-in-enter-from,
+.slide-in-leave-to {
+  opacity: 0;
+}
+
+/* Transição do Drawer (barra lateral) */
+.slide-in-enter-active .sidebar-menu,
+.slide-in-leave-active .sidebar-menu {
+  transition: transform 0.5s cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+/* Posição inicial (escondida) */
+.slide-in-enter-from .sidebar-menu,
+.slide-in-leave-to .sidebar-menu {
+  transform: translateX(100%);
+  /* Move para fora da tela (direita) */
+}
+
+/* Posição final (visível) */
+.slide-in-enter-to .sidebar-menu,
+.slide-in-leave-from .sidebar-menu {
+  transform: translateX(0);
+  /* Posição normal na tela */
 }
 
 /* ============================================================

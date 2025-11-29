@@ -1,5 +1,5 @@
 <script setup>
-const bg = '/imgs/casamento-sangrento-tentativa.png'
+const bg = '/imgs/Casamento fundo.png'
 </script>
 
 <template>
@@ -29,7 +29,6 @@ const bg = '/imgs/casamento-sangrento-tentativa.png'
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-
   overflow: hidden;
   display: flex;
 }
@@ -58,6 +57,7 @@ section.banner {
 
 h1 {
     font-family: 'Metal Mania', cursive;
+    color: white;
     font-size: 100px;
     line-height: 120px;
     font-weight: 200;
@@ -67,6 +67,7 @@ h1 {
 
 p {
     font-family: 'K2D', sans-serif;
+    color: white;
     font-weight: 500;
     font-size: 20px;
     line-height: 30px;

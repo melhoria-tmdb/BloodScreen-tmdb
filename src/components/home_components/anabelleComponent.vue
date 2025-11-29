@@ -1,5 +1,5 @@
 <script setup>
-const bg = '/imgs/Annabelle fundo.png'
+const bg = '/imgs/annabelle-teste.png'
 </script>
 
 <template>

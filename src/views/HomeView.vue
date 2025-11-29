@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue"
+import { ref, onMounted, onUnmounted, computed, watch } from "vue"
 
 import telefoneComponent from "@/components/home_components/telefoneComponent.vue"
 import itComponent from "@/components/home_components/itComponent.vue"
@@ -7,13 +7,21 @@ import anabelleComponent from "@/components/home_components/anabelleComponent.vu
 import casamentoComponent from "@/components/home_components/casamentoComponent.vue"
 
 const slides = [
-  telefoneComponent,
-  itComponent,
-  anabelleComponent,
-  casamentoComponent,
+ { component: telefoneComponent, themeColor: '152, 106, 27' },
+ { component: itComponent, themeColor: '141, 27, 16' },
+ { component: anabelleComponent, themeColor: '121, 110, 99' },
+ { component: casamentoComponent, themeColor: '194, 99, 48' },
 ]
 
 const currentIndex = ref(0)
+
+const currentThemeColor = computed(() => slides[currentIndex.value].themeColor)
+
+watch(currentThemeColor, (newColor) => {
+    // Define uma variável CSS (--slide-theme-color) no body (ou html)
+    document.documentElement.style.setProperty('--slide-theme-color', newColor)
+}, { immediate: true }) // Roda imediatamente para definir a cor inicial
+
 
 // ⏱ tempo entre trocas (em ms)
 const intervalTime = 10000
@@ -27,15 +35,16 @@ function startInterval() {
   }, intervalTime)
 }
 
-// NOVO: Função para ir para um slide específico e reiniciar o timer
-function goToSlide(index) {
-  currentIndex.value = index
-  startInterval() // Reinicia o timer após a navegação manual
-}
-
 onMounted(() => {
-  startInterval()
+    interval = setInterval(() => {
+        currentIndex.value = (currentIndex.value + 1) % slides.length
+    }, intervalTime)
 })
+
+function goToSlide(index) {
+    currentIndex.value = index
+    startInterval()
+}
 
 onUnmounted(() => {
   clearInterval(interval)
@@ -46,7 +55,7 @@ onUnmounted(() => {
   <div class="w-full h-screen overflow-hidden relative">
 
     <transition name="slide-left">
-      <component :is="slides[currentIndex]" :key="currentIndex" class="w-full h-full absolute inset-0" />
+      <component :is="slides[currentIndex].component" :key="currentIndex" class="w-full h-full absolute inset-0" />
     </transition>
 
     <div class="linha-e-bolas">
