@@ -1,5 +1,5 @@
 <script setup>
-const bg = '/imgs/Casamento sangrento fundo.png'
+const bg = '/imgs/casamento-sangrento-tentativa.png'
 </script>
 
 <template>
@@ -8,15 +8,6 @@ const bg = '/imgs/Casamento sangrento fundo.png'
     }">
         <section class="banner">
             <div class="left">
-                <div class="linha-e-bolas">
-                    <div class="segmento-linha linha-inferior"></div>
-                    <div class="segmento-linha linha-superior"></div>
-
-                    <div class="bola bola-1"></div>
-                    <div class="bola bola-2"></div>
-                    <div class="bola bola-3"></div>
-                    <div class="bola bola-4"></div>
-                </div>
                 <div class="content">
                     <h1>Casamento Sangrento</h1>
                     <p>
@@ -59,66 +50,6 @@ section.banner {
     height: auto;
     width: auto;
 }
-
-.linha-e-bolas {
-    position: relative;
-    height: 80vh;
-    width: 20px;
-    margin-right: 56px;
-}
-
-.segmento-linha {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 4px;
-    background: white;
-    z-index: 1;
-}
-
-.linha-inferior {
-    height: 80px;
-    bottom: 3px;
-    background: linear-gradient(to top, white 0%, rgba(255, 255, 255, 0) 100%);
-}
-
-.linha-superior {
-    height: 389px;
-    bottom: 260px;
-
-    background: linear-gradient(to bottom, white 0%, rgba(255, 255, 255, 0) 100%);
-}
-
-.bola {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 20px;
-    height: 20px;
-    background-color: white;
-    border-radius: 50%;
-    z-index: 2;
-}
-
-.bola-1 {
-    bottom: 15%;
-    background-color: #ADADAD;
-}
-
-.bola-2 {
-    bottom: 20%;
-    background-color: #ADADAD;
-}
-
-.bola-3 {
-    bottom: 25%;
-    background-color: #ADADAD;
-}
-
-.bola-4 {
-    bottom: 30%;
-}
-
 
 .content {
     width: 600px;
