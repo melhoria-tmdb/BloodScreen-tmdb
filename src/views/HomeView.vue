@@ -52,7 +52,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="w-full h-screen overflow-hidden relative">
+  <div class="w-full h-full relative">
 
     <transition name="slide-left">
       <component :is="slides[currentIndex].component" :key="currentIndex" class="w-full h-full absolute inset-0" />
@@ -128,7 +128,7 @@ onUnmounted(() => {
     transform: translateX(-50%);
     width: 20px;
     height: 20px;
-    background-color: #ADADAD; /* Cor padrão cinza para todas */
+    background-color: #ADADAD; /* Cor padrão cinza para todas */    
     border-radius: 50%;
     z-index: 2;
     cursor: pointer; /* Adiciona a mãozinha para indicar que é clicável */

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, provide } from 'vue';
 import api from '@/plugins/axios';
 import Loading from 'vue-loading-overlay';
 import { useRouter } from 'vue-router';
@@ -93,6 +93,8 @@ const handleShowSelect = (showId) => {
   router.push({ name: 'ShowDetails', params: { showId } });
 };
 
+provide('handleSearchSelect', handleShowSelect);
+
 onMounted(async () => {
   await listShows(subgenres[0]);
 });
@@ -102,7 +104,6 @@ onMounted(async () => {
 <template>
   <div id="top">
     <h1>Séries de Terror</h1>
-    <SearchBarShow @select="handleShowSelect" />
   </div>
 
   <SubgenreListShow
@@ -120,8 +121,8 @@ onMounted(async () => {
 #top {
   display: flex;
   justify-content: space-between;
+  margin-top: 2vw;
   padding: 2vw;
   align-items: center;
 }
-
 </style>
