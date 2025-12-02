@@ -23,11 +23,8 @@ function estrelas(rating) {
 
 <template>
   <section>
+    <h1 id="rec">Recomendados</h1>
     <div>
-      <div id="gore">
-        <img src="" alt="">
-
-      </div>
     </div>
   </section>
   <section>
@@ -46,6 +43,7 @@ function estrelas(rating) {
         <p class="movie-date">
           {{ new Date(movie.release_date).toLocaleDateString('pt-BR') }}
         </p>
+      
       </div>
     </div>
   </div>
@@ -54,12 +52,18 @@ function estrelas(rating) {
 </template>
 
 <style scoped>
+
+#rec {
+  text-align: center;
+  align-items: center;
+  margin-bottom: 0;
+}
+
 .movie-list {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
   justify-content: center;
-  margin-top: 3vw;
 }
 
 .movie-card {

@@ -7,6 +7,7 @@ const emit = defineEmits(['change'])
 </script>
 
 <template>
+
   <ul class="genre-list">
     <li
       v-for="sub in subgenres"
@@ -21,6 +22,7 @@ const emit = defineEmits(['change'])
 </template>
 
 <style scoped>
+
 .genre-list {
   display: flex;
   justify-content: center;
@@ -32,12 +34,18 @@ const emit = defineEmits(['change'])
 }
 
 /* Botões dos subgêneros */
+
+
+
 .genre-item {
   background-color: #7a0b0b; /* vermelho escuro base */
-  border-radius: 1rem;
+  border-radius: 50px;
+  width: 133px;
+  height: 667px;
   padding: 0.5rem 1.2rem;
   color: #fff;
   font-weight: 500;
+  text-align: center;
   transition: all 0.3s ease;
   box-shadow: 0 0 0.3rem rgba(0, 0, 0, 0.4);
 }
