@@ -59,28 +59,28 @@ const groundHeight = 14
 // SPRITES / IMAGENS
 // =================
 const spriteRun = new Image()
-spriteRun.src = '/cats.png'
+spriteRun.src = '/gatorunner/cats.png'
 
 const spriteJump = new Image()
-spriteJump.src = '/jumping.png'
+spriteJump.src = '/gatorunner/jumping.png'
 
 // Obstáculos: múltiplos tipos
 const obstacleImages = []
 
 const tombstone1 = new Image()
-tombstone1.src = '/grave1.png'
+tombstone1.src = '/gatorunner/grave1.png'
 obstacleImages.push(tombstone1)
 
 const tombstone2 = new Image()
-tombstone2.src = '/grave2.png'
+tombstone2.src = '/gatorunner/grave2.png'
 obstacleImages.push(tombstone2)
 
 const tombstone3 = new Image()
-tombstone3.src = '/grave3.png'
+tombstone3.src = '/gatorunner/grave3.png'
 obstacleImages.push(tombstone3)
 
 const tombstone4 = new Image()
-tombstone4.src = '/grave4.png'
+tombstone4.src = '/gatorunner/grave4.png'
 obstacleImages.push(tombstone4)
 
 

@@ -9,12 +9,12 @@ const routes = [
   {
     path: '/filmes',
     name: 'Movies',
-    component: () => import('../views/MovieViews/MoviesView.vue'),
+    component: () => import('../views/MovieViewsOld/MoviesView.vue'),
   },
   {
     path: '/tv',
     name: 'TV',
-    component: () => import('../views/ShowViews/TvView.vue'),
+    component: () => import('../views/ShowViewsOld/TvView.vue'),
   },
   {
     path: '/elenco',
@@ -24,13 +24,13 @@ const routes = [
   {
   path: '/movie/:movieId',
   name: 'MovieDetails',
-  component: () => import('../views/MovieViews/MovieDetailsView.vue'),
+  component: () => import('../views/MovieViewsOld/MovieDetailsView.vue'),
   props: true,
   },
   {
   path: '/show/:showId',
   name: 'ShowDetails',
-  component: () => import('../views/ShowViews/TvDetailsView.vue'),
+  component: () => import('../views/ShowViewsOld/TvDetailsView.vue'),
   props: true,
   },
 

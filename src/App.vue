@@ -1,7 +1,11 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import BreakoutGame from './views/Games/BreakoutGame.vue'
 import GatoRunnerGame from './views/Games/GatoRunnerGame.vue'
+
+// ⬅️ NOVO: Inicializar a rota para checagem de página
+const route = useRoute()
 
 /* ============================================================
    TEMA (Light/Dark)
@@ -105,6 +109,12 @@ onMounted(() => window.addEventListener('keydown', handleKey))
 onUnmounted(() => window.removeEventListener('keydown', handleKey))
 
 /* ============================================================
+   LÓGICA DO MENU
+============================================================ */
+// ⬅️ NOVO: Propriedade computada para saber se estamos na Home
+const isHome = computed(() => route.path === '/')
+
+/* ============================================================
    MENU HEADER MOBILE
 ============================================================ */
 const openMenu = ref(false)
@@ -115,18 +125,15 @@ function Menu() {
    DETECTOR ClIQUE
 ============================================================ */
 function handleClickOutside(event) {
-  const menu = document.querySelector('.dropdown-menu')
+  const menuSidebar = document.querySelector('.sidebar-menu')
   const menuButton = document.getElementById('Menu')
 
-  // Se o menu não está aberto, ignora
+
   if (!openMenu.value) return
 
-  // Se clicou dentro do menu ou no botão do menu → não fecha
-  if (menu?.contains(event.target) || menuButton?.contains(event.target)) {
+  if (menuSidebar?.contains(event.target) || menuButton?.contains(event.target)) {
     return
   }
-
-  // Qualquer clique fora → fecha
   openMenu.value = false
 }
 
@@ -145,14 +152,14 @@ onUnmounted(() => {
 
     <nav>
       <div id="bloodscreen">
-        <router-link to="/" class="color-target">BloodScreen</router-link>
+        <router-link to="/" class="color-target">BLOODSCREEN</router-link>
       </div>
     </nav>
 
     <nav>
       <div id="content">
-        <router-link to="/filmes" class="color-target">Filmes</router-link>
-        <router-link to="/tv" class="color-target">Séries</router-link>
+        <router-link to="/filmes" class="color-target">FILMES</router-link>
+        <router-link to="/tv" class="color-target">SÉRIES</router-link>
       </div>
     </nav>
 
@@ -161,24 +168,6 @@ onUnmounted(() => {
         <span class="mdi mdi-menu"></span>
       </button>
 
-      <div v-if="openMenu" class="dropdown-menu">
-        <button @click="toggleTheme" class="color-target">
-          <span
-            :class="['mdi rotate', isDarkMode ? 'mdi-weather-night' : 'mdi-white-balance-sunny', rotating ? 'rotate-rotate' : '']"></span>
-        </button>
-
-        <button class="color-target" @click="cor">
-          <span class="mdi mdi-palette"></span>
-        </button>
-
-        <button class="color-target balada" :class="{ active: baladaAtiva }" @click="balada">
-          <span class="mdi mdi-auto-mode"></span>
-        </button>
-
-        <button class="color-target reset" @click="resetCor">
-          <span class="mdi mdi-refresh"></span>
-        </button>
-      </div>
     </div>
 
   </header>
@@ -187,7 +176,52 @@ onUnmounted(() => {
     <router-view />
   </main>
 
-  <!-- MENU DE JOGOS -->
+  <transition name="slide-in">
+    <div v-if="openMenu" class="sidebar-overlay" @click.self="Menu"
+      :style="{ backgroundColor: isHome ? `rgba(var(--slide-theme-color), 0.5)` : 'rgba(0, 0, 0, 0.5)' }">
+      <div class="sidebar-menu" :style="{ backgroundColor: isHome ? `rgb(var(--slide-theme-color))` : 'var(--bg)' }">
+        <div class="sidebar-header">
+          <router-link to="/" class="color-target" @click="Menu">BLOODSCREEN</router-link>
+        </div>
+
+        <div class="sidebar-content">
+          <router-link to="/" class="menu-item color-target" @click="Menu">
+            <span class="mdi mdi-home-variant-outline"></span> Home
+          </router-link>
+
+          <div class="menu-item color-target" @click="cor">
+            <span class="mdi mdi-palette"></span> Aparência
+          </div>
+
+          <div class="menu-item color-target" @click="toggleTheme">
+            <span
+              :class="['mdi rotate', isDarkMode ? 'mdi-weather-night' : 'mdi-white-balance-sunny', rotating ? 'rotate-rotate' : '']"></span>
+            Modo
+          </div>
+
+          <div class="menu-item color-target balada" :class="{ active: baladaAtiva }" @click="balada">
+            <span class="mdi mdi-auto-mode"></span> Automático
+          </div>
+
+          <div class="menu-item color-target" @click="cor">
+            <span class="mdi mdi-account-star"></span> Celebridades
+          </div>
+
+          <div class="menu-item color-target" @click="resetCor">
+            <span class="mdi mdi-reload"></span> Resetar
+          </div>
+        </div>
+
+        <div class="sidebar-footer">
+          <div class="menu-item color-target" @click="Menu">
+            <span class="mdi mdi-arrow-left-circle"></span> Voltar
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
+
+
   <div v-if="showMenu" class="overlay">
     <div class="game-window menu">
       <h2>🎮 Arcade Secreto</h2>
@@ -206,26 +240,22 @@ onUnmounted(() => {
     </div>
   </div>
 
-  <!-- JOGO -->
   <div v-if="currentGame" class="overlay">
     <div class="game-window">
       <button class="close color-target" @click="closeGame"></button>
-      <component
-  v-if="currentGame"
-  :is="currentGame.view"
-  @close="closeGame"
-  @backToMenu="() => {
-    currentGame = null
-    showMenu = true
-  }"
-/>
+
+      <component v-if="currentGame" :is="currentGame.view" @close="closeGame" @backToMenu="() => {
+        currentGame = null
+        showMenu = true
+      }" />
+
     </div>
   </div>
 </template>
 
 <style>
 /* ============================================================
-   Cores globais
+Cores globais
 ============================================================ */
 :root {
   --custom-color: unset;
@@ -235,94 +265,201 @@ onUnmounted(() => {
   transition: color 0.8s ease !important;
   color: var(--custom-color, var(--text)) !important;
 }
+
 /* ============================================================
-   Header
+Header
 ============================================================ */
+
 header {
-  position: relative;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  background-color: var(--header-bg) !important;
   height: 3rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: transparent;
-  color: var(--text);
-  z-index: 1000;
+  margin-top: 1.3vw;
+  padding: 0 4rem;
 }
 
 #bloodscreen a {
-  font-size: 1.5rem;
+  font-size: 30px;
   font-weight: bold;
+  font-family: 'Metal Mania', regular;
 }
 
 #content {
   display: flex;
   gap: 3vw;
-
   position: absolute;
   top: 50%;
-  left: 50%;
+  left: 52%;
   transform: translate(-50%, -50%);
 }
 
 #content a {
   text-decoration: none;
+  color: white !important;
+  font-family: 'K2D', thin;
+  font-weight: 100;
+  font-size: 20px;
 }
+
 #content a:hover {
   color: red !important;
 }
+
 #content a.router-link-active {
   color: rgb(240, 29, 29) !important;
 }
 
 /* ============================================================
-   Dropdown
+ SIDEBAR / DRAWER
 ============================================================ */
 button {
   background: none;
   border: none;
   font-size: 1.6rem;
-  padding-right: 2.5rem;
   color: white;
   cursor: pointer;
 }
 
 .menu-container {
   position: relative;
-  /* referência pro dropdown */
 }
 
-.dropdown-menu {
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+
+  /* Transição de cor para suavizar (mantida) */
+  transition: background-color 0.8s ease;
+
+  z-index: 10000;
+  /* Fundo definido no style inline (template) */
+}
+
+.sidebar-menu {
   position: absolute;
-  top: 100%;
-  /* logo abaixo do botão */
-  right: 1.2vw;
-  border: 1px solid;
-  border-color: var(--text);
-  background: var(--bg);
-  border-radius: 8px;
+  top: 0;
+  right: 0;
+  width: 320px;
+  height: 100%;
+  /* Transição de cor para suavizar (mantida) */
+  transition: background-color 0.8s ease;
+
+  /* Fundo definido no style inline (template) */
+  color: var(--text);
+  /* 💥 AJUSTE: Redução do padding superior para subir o cabeçalho */
+  padding: 20px 0;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: -4px 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.sidebar-header {
+  align-items: center;
+  text-align: center;
+  margin-bottom: 20px;
+  /* (Removido margin-top negativa, já que o padding superior foi ajustado) */
+}
+
+.sidebar-header a {
+  font-size: 30px;
+  font-weight: bold;
+  font-family: 'Metal Mania', regular;
+  text-decoration: none;
+  color: inherit;
+}
+
+.sidebar-content,
+.sidebar-footer {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 0.5rem;
-  z-index: 999;
+  padding: 0 20px;
 }
 
-.dropdown-menu button {
-  color: white;
-  font-size: 1.6rem;
-  border: none;
-  background: none;
+.menu-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  font-size: 1.2rem;
+  font-family: 'K2D', sans-serif;
+  font-weight: 500;
   cursor: pointer;
-  padding: 0.5rem;
+  border-radius: 4px;
+  text-decoration: none;
 }
 
-.dropdown-menu button:hover {
-  background: #bbbaba;
-  border-radius: 6px;
+.menu-item span.mdi {
+  font-size: 1.4rem;
+  margin-right: 15px;
+}
+
+.menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  /* Ajuste para o valor padrão, 20px era muito arredondado */
+}
+
+/* Estilo para "Voltar" (Footer) */
+.sidebar-footer {
+  border-top: 1px solid var(--text);
+  padding-top: 20px;
+  margin-top: 20px;
+}
+
+.sidebar-footer .menu-item {
+  color: var(--nav-link-hover, red);
+  /* Destaca a cor do botão Voltar */
+}
+
+
+/* ============================================================
+ SIDEBAR ANIMAÇÃO
+============================================================ */
+/* Define a transição para ambos: o menu e o overlay */
+.slide-in-enter-active,
+.slide-in-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.slide-in-enter-from,
+.slide-in-leave-to {
+  opacity: 0;
+}
+
+/* Transição do Drawer (barra lateral) */
+.slide-in-enter-active .sidebar-menu,
+.slide-in-leave-active .sidebar-menu {
+  transition: transform 0.5s cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+/* Posição inicial (escondida) */
+.slide-in-enter-from .sidebar-menu,
+.slide-in-leave-to .sidebar-menu {
+  transform: translateX(100%);
+  /* Move para fora da tela (direita) */
+}
+
+/* Posição final (visível) */
+.slide-in-enter-to .sidebar-menu,
+.slide-in-leave-from .sidebar-menu {
+  transform: translateX(0);
+  /* Posição normal na tela */
 }
 
 /* ============================================================
-   Balada animação
+Balada animação
 ============================================================ */
 .balada.active {
   animation: pisca 0.3s infinite alternate;
@@ -341,7 +478,7 @@ button {
 }
 
 /* ============================================================
-   Jogos
+ Jogos
 ============================================================ */
 .overlay {
   position: fixed;
@@ -392,7 +529,6 @@ button {
   border-radius: 12px;
   padding: 1.4vw;
 }
-
 
 .close {
   position: absolute;
