@@ -92,7 +92,7 @@ function estrelas(rating) {
 }
 .show-stars {
   font-size: 1.5rem;
-  color: #ffffff;  
+  color: #ffffff;
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
@@ -153,10 +153,9 @@ function estrelas(rating) {
   background-color: var(--bg);
 }
 
-
 .show-stars {
   font-size: 1.5rem;
-  color: var(--text);  
+  color: var(--text);
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
@@ -169,7 +168,6 @@ function estrelas(rating) {
   text-align: center;
   line-height: 1.3rem;
   margin-top: 2vw;
-  margin-bottom: 0.1vw;
   font-family: 'K2D', thin;
 }
 

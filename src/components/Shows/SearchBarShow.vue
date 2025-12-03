@@ -152,7 +152,7 @@ const clearSearch = () => {
   top: 50%;
   transform: translateY(-50%);
   font-size: 20px;
-  color: #666;
+  color: var(--text);
   cursor: pointer;
 }
 
@@ -166,7 +166,7 @@ const clearSearch = () => {
 
 .input-wrap .mdi-close-thick:hover {
   background: #e5e5e5;
-  color: #333;
+  color: var(--text);
 }
 
 /* Ícone lupa */
@@ -179,17 +179,17 @@ const clearSearch = () => {
 
 .input-wrap .mdi-magnify:hover {
   background: #e5e5e5;
-  color: #333;
+  color: var(--text);
 }
 
 .pesquisa {
   width: 100%;
-  /* faz o input se ajustar ao .input-wrap */
   padding: 10px 40px 10px 15px;
-  /* espaço extra à direita pro ícone */
+  background-color: transparent;
   height: 40px;
   border: 1px solid var(--text);
-  border-radius: 6px;
+  color: var(--text);
+  border-radius: 20px;
   font-size: 16px;
 }
 
@@ -207,8 +207,8 @@ const clearSearch = () => {
   top: 100%;
   left: 0;
   width: 100%;
-  background: #111;
-  border: 1px solid #333;
+  background: var(--bg);
+  border: 1px solid var(--bg);
   border-radius: 0.5rem;
   margin-top: 4px;
   list-style: none;
@@ -225,7 +225,7 @@ const clearSearch = () => {
   align-items: center;
   gap: 10px;
   padding: 8px 12px;
-  color: #fff;
+  color: var(--text);
   cursor: pointer;
   transition: background 0.2s;
 }

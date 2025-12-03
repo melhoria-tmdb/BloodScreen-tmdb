@@ -4,7 +4,6 @@ import api from '@/plugins/axios';
 import Loading from 'vue-loading-overlay';
 import { useRouter } from 'vue-router';
 
-import SearchBarShow from '@/components/Shows/SearchBarShow.vue';
 import SubgenreListShow from '@/components/Shows/SubgenreListShow.vue';
 import ShowList from '@/components/Shows/ShowList.vue';
 
@@ -102,27 +101,65 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div id="top">
-    <h1>Séries de Terror</h1>
+  <div id="banner">
+    <img src="/public/imgs/banner_serie.png" alt="banner_serie" class="banner-image">
   </div>
 
+  <div id="body">
+
+  <div id="genres">
   <SubgenreListShow
     :subgenres="subgenres"
     :current="currentSubgenre"
     @change="listShows"
   />
+  </div>
 
   <loading v-model:active="isLoading" is-full-page />
 
+  <div id="shows">
+    <h2>Recomendados</h2>
   <ShowList :shows="shows" @select="handleShowSelect" />
+  </div>
+
+  </div>
 </template>
 
 <style scoped>
-#top {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 2vw;
-  padding: 2vw;
-  align-items: center;
+#banner {
+  line-height: 0;
+  background-color: var(--bg);
+}
+
+.banner-image {
+  width: 100%;
+  mask-image: linear-gradient(to bottom, var(--bg) 75%, transparent 95%);
+}
+
+#body {
+  background-color: var(--bg);
+
+  background-image: linear-gradient(
+    to bottom,
+    var(--bg) 0%,
+    var(--bg) 15%,
+
+    #310101 50%,
+
+    var(--bg) 85%,
+    var(--bg) 100%
+  );
+
+  min-height: 100vh;
+}
+
+#genres {
+  margin: 6vw 0 6vw 0;
+}
+
+#shows h2 {
+  font-family: 'K2D', thin;
+  font-size: 38px;
+  text-align: center;
 }
 </style>
