@@ -75,6 +75,7 @@ function estrelas(rating) {
   display: flex;
   flex-direction: column;
   align-items: center;
+
   justify-content: flex-start;
   text-align: center;
 }
@@ -142,6 +143,7 @@ function estrelas(rating) {
   width: 100%;
   padding: 0rem;
   display: flex;
+
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;

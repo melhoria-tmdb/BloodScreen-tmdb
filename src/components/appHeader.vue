@@ -31,10 +31,12 @@ const props = defineProps({
 // 🌟 1. INJETA a função. Se não encontrar (ex: estamos na Home), usa uma função vazia.
 const injectedSearchSelect = inject('handleSearchSelect', () => {
     // console.log('Função de seleção de pesquisa não injetada (provavelmente HomeView)');
+}); // <--- ⚠️ A chave de fechamento '})' estava faltando aqui!
 
 const searchHandler = computed(() => {
     return props.showSearchBar ? injectedSearchSelect : props.onSearchSelect;
 });
+
 </script>
 
 <template>

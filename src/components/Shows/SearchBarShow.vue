@@ -115,16 +115,9 @@ const clearSearch = () => {
 
 <template>
   <div class="input-wrap">
-    <input
-      type="text"
-      v-model="query"
-      @input="handleInput"
-      @keyup.enter="searchAndSelect()"
-      placeholder="Pesquisar em séries..."
-      class="pesquisa"
-      @focus="showSuggestions = suggestions.length > 0"
-      @blur="setTimeout(() => (showSuggestions = false), 150)"
-    />
+    <input type="text" v-model="query" @input="handleInput" @keyup.enter="searchAndSelect()"
+      placeholder="Pesquisar em séries..." class="pesquisa" @focus="showSuggestions = suggestions.length > 0"
+      @blur="setTimeout(() => (showSuggestions = false), 150)" />
 
     <!-- Ícone de limpar -->
     <i v-if="query" class="mdi mdi-close-thick" @click="clearSearch"></i>
@@ -133,12 +126,7 @@ const clearSearch = () => {
     <i class="mdi mdi-magnify" @click="searchAndSelect()"></i>
 
     <ul v-if="showSuggestions" class="suggestion-list">
-      <li
-        v-for="s in suggestions"
-        :key="s.id"
-        @click="selectSuggestion(s)"
-        class="suggestion-item"
-      >
+      <li v-for="s in suggestions" :key="s.id" @click="selectSuggestion(s)" class="suggestion-item">
         <img :src="`https://image.tmdb.org/t/p/w92${s.poster_path}`" />
         <span>{{ s.name }}</span>
       </li>
@@ -149,8 +137,12 @@ const clearSearch = () => {
 
 <style scoped>
 .input-wrap {
-  position: relative;
+  position: fixed;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
   display: inline-block;
+  text-align: center;
   width: 100%;
   max-width: 400px;
 }
@@ -171,6 +163,7 @@ const clearSearch = () => {
   border-radius: 12px;
   transition: 0.2s;
 }
+
 .input-wrap .mdi-close-thick:hover {
   background: #e5e5e5;
   color: #333;
@@ -183,6 +176,7 @@ const clearSearch = () => {
   border-radius: 12px;
   transition: 0.2s;
 }
+
 .input-wrap .mdi-magnify:hover {
   background: #e5e5e5;
   color: #333;
@@ -235,6 +229,7 @@ const clearSearch = () => {
   cursor: pointer;
   transition: background 0.2s;
 }
+
 .suggestion-item:hover {
   background: #7a0b0b;
 }
