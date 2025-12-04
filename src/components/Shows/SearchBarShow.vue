@@ -197,6 +197,9 @@ const clearSearch = () => {
   outline: none;
   box-shadow: none;
 }
+.pesquisa::placeholder {
+  color: var(--text);
+}
 
 .pesquisa:focus-visible {
   outline: 2px solid transparent;

@@ -23,11 +23,14 @@ const horrorKeywordList = [
 // 🎬 Subgêneros com várias keywords
 const subgenres = [
   { id: null, name: 'Todos', keywords: horrorKeywordList },
-  { id: 'slasher', name: 'Slasher', keywords: [12339, 233450, 208318, 279729, 309061, 325665, 325992, 338102, 351863, 356262, 13209, 157758, 14676, 10714] },
-  { id: 'psychological', name: 'Psicológico', keywords: [295907, 235847, 316790, 323295, 12565, 166701, 240377] },
-  { id: 'zombie', name: 'Zumbi', keywords: [12377, 186565] },
-  { id: 'supernatural', name: 'Sobrenatural', keywords: [9853, 172808, 161261, 251874, 256183] },
+
+  { id: 'zombie', name: 'Zumbi', keywords: [12377, 186565], imagePath: '/public/imgs/subgeneros_series/Zumbi.png', synopsis: 'Subgênero do horror que envolve zumbis ou infectados que são cadáveres reanimados' },
+  { id: 'slasher', name: 'Slasher', keywords: [12339, 233450, 208318, 279729, 309061, 325665, 325992, 338102, 351863, 356262, 13209, 157758, 14676, 10714], imagePath: '/public/imgs/subgeneros_series/Slasher.jpg', synopsis: 'Subgênero focado em assassinos que perseguem e eliminam vítimas de forma violenta e direta' },
+  { id: 'supernatural', name: 'Sobrenatural', keywords: [9853, 172808, 161261, 251874, 256183], imagePath: '/public/imgs/subgeneros_series/Supernatural.jpg', synopsis: 'Subgênero centrado em forças além da compreensão humana, como espíritos, demônios e fenômenos paranormais' },
+  { id: 'psychological', name: 'Psicológico', keywords: [295907, 235847, 316790, 323295, 12565, 166701, 240377], imagePath: '/public/imgs/subgeneros_series/Psicologico.png', synopsis: 'Subgênero que explora a mente humana, destacando paranoia, trauma e distorções da realidade' },
 ];
+
+const selectableSubgenres = subgenres.slice(1);
 
 // 🔥 Função para listar séries
 const listShows = async (sub) => {
@@ -107,20 +110,16 @@ onMounted(async () => {
 
   <div id="body">
 
-  <div id="genres">
-  <SubgenreListShow
-    :subgenres="subgenres"
-    :current="currentSubgenre"
-    @change="listShows"
-  />
-  </div>
+    <div id="genres">
+      <SubgenreListShow :subgenres="selectableSubgenres" :current="currentSubgenre" @change="listShows" />
+    </div>
 
-  <loading v-model:active="isLoading" is-full-page />
+    <loading v-model:active="isLoading" is-full-page />
 
-  <div id="shows">
-    <h2>Recomendados</h2>
-  <ShowList :shows="shows" @select="handleShowSelect" />
-  </div>
+    <div id="shows">
+      <h2>Recomendados</h2>
+      <ShowList :shows="shows" @select="handleShowSelect" />
+    </div>
 
   </div>
 </template>
@@ -133,22 +132,20 @@ onMounted(async () => {
 
 .banner-image {
   width: 100%;
-  mask-image: linear-gradient(to bottom, var(--bg) 75%, transparent 95%);
+  mask-image: linear-gradient(to bottom, var(--bg) 60%, transparent 95%);
 }
 
 #body {
   background-color: var(--bg);
 
-  background-image: linear-gradient(
-    to bottom,
-    var(--bg) 0%,
-    var(--bg) 15%,
+  background-image: linear-gradient(to bottom,
+      var(--bg) 0%,
+      var(--bg) 15%,
 
-    #310101 50%,
+      #310101 50%,
 
-    var(--bg) 85%,
-    var(--bg) 100%
-  );
+      var(--bg) 85%,
+      var(--bg) 100%);
 
   min-height: 100vh;
 }

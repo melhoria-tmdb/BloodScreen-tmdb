@@ -2,20 +2,16 @@
 const props = defineProps({ shows: Array });
 const emit = defineEmits(['select']);
 
-
-// Função para gerar as estrelas com base na nota
 function estrelas(rating) {
-  const stars = Math.round(rating / 2);  // Converte a avaliação de 1-10 para 1-5 estrelas
+  const stars = Math.round(rating / 2);
   let starHTML = '';
 
-  // Adiciona as estrelas preenchidas
   for (let i = 0; i < stars; i++) {
-    starHTML += '★';  // Estrela cheia
+    starHTML += '★';
   }
 
-  // Adiciona as estrelas vazias
   for (let i = stars; i < 5; i++) {
-    starHTML += '☆';  // Estrela vazia
+    starHTML += '☆';
   }
 
   return starHTML;
@@ -38,70 +34,6 @@ function estrelas(rating) {
 </template>
 
 <style scoped>
-/*.show-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  justify-content: center;
-  margin-top: 3vw;
-}
-.show-card {
-  width: 15rem;
-  height: 30rem;
-  border-radius: 0.75rem;
-  overflow: hidden;
-  background-color: #111;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-.show-card:hover {
-  transform: scale(1.04);
-  box-shadow: 0 6px 20px rgba(255, 0, 0, 0.25);
-  cursor: pointer;
-}
-.show-card img {
-  width: 100%;
-  height: 21rem;
-  object-fit: cover;
-  border-bottom: 2px solid #220000;
-}
-.show-details {
-  flex: 1;
-  width: 100%;
-  padding: 0.7rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-
-  justify-content: flex-start;
-  text-align: center;
-}
-.show-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #fff;
-  line-height: 1.3rem;
-  margin-bottom: 0.4rem;
-  overflow: hidden;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  display: -webkit-box;
-}
-.show-stars {
-  font-size: 1.5rem;
-  color: #ffffff;
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-}
-.show-release-date {
-  font-size: 0.85rem;
-  color: #bfbfbf;
-}
-  */
 
 .show-list {
   display: flex;
