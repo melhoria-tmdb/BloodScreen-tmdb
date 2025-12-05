@@ -24,7 +24,8 @@ const bg = '/imgs/It a coisa fundo.png'
 <style>
 .slide-wrapper {
   width: 100%;
-  height: 100vh;
+  /* Mude para 100% para herdar de <component class="w-full h-full absolute inset-0" /> */
+  height: 100%;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -36,7 +37,8 @@ const bg = '/imgs/It a coisa fundo.png'
 
 section.banner {
     width: 100%;
-    height: 100vh;
+    /* Mude para 100% */
+    height: 100%;
     display: flex;
     align-items: flex-end;
     justify-content: flex-start;

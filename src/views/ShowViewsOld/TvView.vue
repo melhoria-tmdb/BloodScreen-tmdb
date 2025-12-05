@@ -34,6 +34,19 @@ const selectableSubgenres = subgenres.slice(1);
 
 // 🔥 Função para listar séries
 const listShows = async (sub) => {
+
+  // 🚨 ALTERAÇÃO CRUCIAL: Se o subgênero selecionado tiver um ID (não for 'Todos'),
+  // navegamos para a view dinâmica.
+  if (sub && sub.id !== null) {
+    router.push({
+      name: 'SubgenreShow',
+      params: { subgenreId: sub.id }
+    });
+    return;
+  }
+
+  // Se o ID for 'null' (Todos), continuamos na TvView e carregamos a lista completa.
+
   try {
     isLoading.value = true;
     shows.value = [];
@@ -42,12 +55,12 @@ const listShows = async (sub) => {
     const totalPages = 3;
     const allResults = [];
 
+    // Lógica para o caso 'Todos' (sub.id === null)
     if (!sub || !Array.isArray(sub.keywords) || sub.keywords.length === 0) {
       for (let page = 1; page <= totalPages; page++) {
         const resp = await api.get('discover/tv', {
           params: {
             language: 'pt-BR',
-            sort_by: 'popularity.desc',
             include_adult: false,
             page,
           },
@@ -55,6 +68,8 @@ const listShows = async (sub) => {
         allResults.push(...(resp.data.results || []));
       }
     } else {
+      // Este bloco era para subgêneros específicos, mas agora é tratado na SubgenreShowView.
+      // Para garantir que "Todos" use keywords se necessário (embora o bloco acima seja o padrão):
       const responses = await Promise.all(
         sub.keywords.map((kw) =>
           api
@@ -70,8 +85,7 @@ const listShows = async (sub) => {
             .then((r) => r.data.results || [])
             .catch(() => [])
         )
-      );
-      for (const list of responses) allResults.push(...list);
+      ); for (const list of responses) allResults.push(...list);
     }
 
     const uniqueShows = Array.from(new Map(allResults.map((s) => [s.id, s])).values());
@@ -98,6 +112,7 @@ const handleShowSelect = (showId) => {
 provide('handleSearchSelect', handleShowSelect);
 
 onMounted(async () => {
+  // Garante que a listagem "Todos" seja carregada ao montar a TvView
   await listShows(subgenres[0]);
 });
 

@@ -52,7 +52,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="w-full h-full relative">
+  <div class="main-carrossel-container w-full h-full relative">
 
     <transition name="slide-left">
       <component :is="slides[currentIndex].component" :key="currentIndex" class="w-full h-full absolute inset-0" />
@@ -71,25 +71,38 @@ onUnmounted(() => {
 </template>
 
 <style>
+.main-carrossel-container {
+  /* Usamos vw/vh aqui, mas se for um carrossel em um container menor, use 100% */
+  height: 100vh;
+  width: 100vw;
+  /* **ESSENCIAL:** O contêiner de clipping */
+  overflow: hidden;
+  /* Certifica que o contêiner que está cortando tem as dimensões certas */
+}
+
 .slide-left-enter-active,
 .slide-left-leave-active {
   transition: transform 0.8s ease-in-out;
   position: absolute;
-  width: 100%;
   height: 100%;
+  width: 100%;
+  overflow: hidden;
 }
 
 .slide-left-enter-from {
   transform: translateX(100%);
+  overflow: hidden;
 }
 
 .slide-left-leave-to {
   transform: translateX(-100%);
+  overflow: hidden;
 }
 
 .slide-left-enter-to,
 .slide-left-leave-from {
   transform: translateX(0);
+  overflow: hidden;
 }
 
 .linha-e-bolas {
@@ -128,7 +141,7 @@ onUnmounted(() => {
     transform: translateX(-50%);
     width: 20px;
     height: 20px;
-    background-color: #ADADAD; /* Cor padrão cinza para todas */    
+    background-color: #ADADAD; /* Cor padrão cinza para todas */
     border-radius: 50%;
     z-index: 2;
     cursor: pointer; /* Adiciona a mãozinha para indicar que é clicável */

@@ -72,10 +72,9 @@ const emit = defineEmits(['change']);
 .genre-list:hover .genre-item:hover {
   width: 400px;
   margin-left: 0;
-  
+
   transform: none;
   z-index: 10;
-  box-shadow: 0 10px 40px rgba(255, 71, 71, 0.8);
   border-radius: 10px;
 }
 
@@ -179,7 +178,6 @@ const emit = defineEmits(['change']);
 
   z-index: 5;
   box-shadow: 0 0 25px #ff4747, 0 0 35px #c71616;
-  border: 4px solid #fff;
 }
 
 /* ✅ GARANTE SINOPSE COMPLETA NO ACTIVE */
