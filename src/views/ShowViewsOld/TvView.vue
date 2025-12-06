@@ -10,6 +10,11 @@ import ShowList from '@/components/Shows/ShowList.vue';
 const isLoading = ref(false);
 const router = useRouter();
 
+const handleShowSelect = (showId) => {
+    console.log('NAVEGAÇÃO LOCAL (ShowList): Tentando ir para ShowDetails com ID:', showId);
+    router.push({ name: 'ShowDetails', params: { showId } });
+};
+
 // --- Variáveis de Dados e Paginação (Inspirado em SubgenreShowView) ---
 const totalShows = ref([]); // Array mestre com todos os resultados únicos
 const showsPerPage = 20; // Limitação de 20 séries por página
@@ -153,7 +158,7 @@ const listShows = async (sub) => {
     const allResults = [];
     // Usamos as keywords do subgênero 'Todos' (horrorKeywordList)
     const keywordsToUse = sub.keywords;
-    const pagesToLoad = 15; // Tentamos carregar 15 páginas por keyword para ter um bom volume
+    const pagesToLoad = 10; // Tentamos carregar 15 páginas por keyword para ter um bom volume
     const pagePromises = [];
 
 
@@ -214,12 +219,6 @@ const listShows = async (sub) => {
     isLoading.value = false;
   }
 };
-
-const handleShowSelect = (showId) => {
-  router.push({ name: 'ShowDetails', params: { showId } });
-};
-
-provide('handleSearchSelect', handleShowSelect);
 
 onMounted(async () => {
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -439,6 +438,7 @@ onMounted(async () => {
   font-family: 'K2D', thin;
   font-size: 3rem;
   font-weight: 400;
+  width: 110%;
   color: white;
   line-height: 1.1;
 }
@@ -453,8 +453,8 @@ onMounted(async () => {
   font-size: 1.3rem;
   line-height: 1.6;
   color: white;
-  margin-top: 2rem;
-  margin-bottom: 2rem;
+  margin-top: 1rem;
+  margin-bottom: 0rem;
   display: -webkit-box;
   -webkit-line-clamp: 12;
   -webkit-box-orient: vertical;

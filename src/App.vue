@@ -1,9 +1,29 @@
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, onMounted, onUnmounted, computed, provide } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import BreakoutGame from './views/Games/BreakoutGame.vue'
 import GatoRunnerGame from './views/Games/GatoRunnerGame.vue'
 import appHeader from './components/appHeader.vue'
+
+const router = useRouter(); // ✅ INICIALIZE AQUI
+
+const globalSearchHandler = (id) => { // Recebe o ID do filme ou série
+    // ... (Lógica de Filmes)
+    if (route.path.startsWith('/filmes')) {
+        console.log('NAVEGAÇÃO GLOBAL: Indo para Detalhes do Filme:', id);
+        // Mapeia o 'id' recebido para o parâmetro 'movieId'
+        router.push({ name: 'MovieDetails', params: { movieId: id } });
+    }
+    // LÓGICA DE SÉRIES (Onde o erro estava)
+    else if (route.path.startsWith('/tv')) {
+        console.log('NAVEGAÇÃO GLOBAL: Indo para Detalhes da Série:', id);
+        // ✅ CORREÇÃO: Mapeia o 'id' recebido para o parâmetro 'showId'
+        router.push({ name: 'ShowDetails', params: { showId: id } });
+    }
+};
+
+// 💡 INJETE a função global para que o AppHeader possa usá-la
+provide('handleSearchSelect', globalSearchHandler);
 
 const isHeaderHidden = ref(false);
 let lastScrollPosition = 0; // Armazena a posição anterior do scroll
@@ -15,35 +35,35 @@ const SCROLL_THRESHOLD = 50; // Quantidade de scroll para cima para o header rea
 
 
 const handleScroll = () => {
-    const currentScrollPosition = window.scrollY;
+  const currentScrollPosition = window.scrollY;
 
-    if (currentScrollPosition <= HEADER_HEIGHT) {
-        isHeaderHidden.value = false;
-        lastScrollPosition = currentScrollPosition;
-        return;
-    }
-
-    if (currentScrollPosition > lastScrollPosition) {
-        isHeaderHidden.value = true;
-    }
-
-    else if (lastScrollPosition - currentScrollPosition > SCROLL_THRESHOLD) {
-        isHeaderHidden.value = false;
-    }
-
+  if (currentScrollPosition <= HEADER_HEIGHT) {
+    isHeaderHidden.value = false;
     lastScrollPosition = currentScrollPosition;
+    return;
+  }
+
+  if (currentScrollPosition > lastScrollPosition) {
+    isHeaderHidden.value = true;
+  }
+
+  else if (lastScrollPosition - currentScrollPosition > SCROLL_THRESHOLD) {
+    isHeaderHidden.value = false;
+  }
+
+  lastScrollPosition = currentScrollPosition;
 };
 
 // ----------------------------------------------------
 // Lifecycle Hooks
 // ----------------------------------------------------
 onMounted(() => {
-    window.addEventListener('scroll', handleScroll);
-    lastScrollPosition = window.scrollY;
+  window.addEventListener('scroll', handleScroll);
+  lastScrollPosition = window.scrollY;
 });
 
 onUnmounted(() => {
-    window.removeEventListener('scroll', handleScroll);
+  window.removeEventListener('scroll', handleScroll);
 });
 
 onMounted(() => {
@@ -59,7 +79,7 @@ const route = useRoute()
 const isHome = computed(() => route.path === '/')
 
 const isTVOrMovie = computed(() =>
-    route.path.startsWith('/tv') || route.path.startsWith('/filmes')
+  route.path.startsWith('/tv') || route.path.startsWith('/filmes')
 )
 
 /* ============================================================
@@ -201,12 +221,8 @@ onUnmounted(() => {
 </script>
 
 <template>
-<appHeader
-    :class="{ 'header-hidden': isHeaderHidden }" class="smart-header"
-    :show-nav-links="isHome"
-    :show-search-bar="isTVOrMovie"
-    :on-menu-click="Menu"
-    :on-search-select="() => {}" />
+  <appHeader :class="{ 'header-hidden': isHeaderHidden }" class="smart-header" :show-nav-links="isHome"
+    :show-search-bar="isTVOrMovie" :on-menu-click="Menu" :on-search-select="() => { }" />
 
   <main>
     <router-view />
@@ -522,28 +538,30 @@ Balada animação
   right: 8px;
   top: 8px;
 }
+
 /* ============================================================
  SMART HEADER (Esconde/Mostra no Scroll)
 ============================================================ */
 
 .smart-header {
-    /* Mantenha o header fixo no topo */
+  /* Mantenha o header fixo no topo */
 
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 999; /* Alto o suficiente para ficar acima de todo o conteúdo */
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 999;
+  /* Alto o suficiente para ficar acima de todo o conteúdo */
 
 
-    height: 100px;
-    background-color: var(--bg);
+  height: 100px;
+  background-color: var(--bg);
 
-    /* Configuração da transição suave (0.3s com aceleração suave) */
-    transition: transform 0.3s ease-in-out;
+  /* Configuração da transição suave (0.3s com aceleração suave) */
+  transition: transform 0.3s ease-in-out;
 }
 
 /* Estado oculto: move o header para fora da tela */
 .header-hidden {
-    transform: translateY(-150%);
+  transform: translateY(-150%);
 }
 </style>

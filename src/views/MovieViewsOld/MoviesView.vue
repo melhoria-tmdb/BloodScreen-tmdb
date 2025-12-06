@@ -11,6 +11,11 @@ import MovieList from '@/components/Movies/MovieList.vue';
 const isLoading = ref(false);
 const router = useRouter();
 
+const handleMovieSelect = (movieId) => {
+    console.log('NAVEGAÇÃO LOCAL (MovieList): Tentando ir para MovieDetails com ID:', movieId);
+    router.push({ name: 'MovieDetails', params: { movieId } });
+};
+
 // --- Variáveis de Dados e Paginação ---
 const totalMovies = ref([]); // Array mestre com todos os resultados únicos
 const moviesPerPage = 20; // Limitação de 20 filmes por página
@@ -198,14 +203,6 @@ const listMovies = async (sub) => {
         isLoading.value = false;
     }
 };
-
-const handleMovieSelect = (movieId) => {
-    // ⚠️ Mudei o nome da rota para detalhes de Filme
-    router.push({ name: 'MovieDetails', params: { movieId } });
-};
-
-// 💡 Permite que os componentes filhos usem a mesma função de seleção
-provide('handleSearchSelect', handleMovieSelect);
 
 onMounted(async () => {
    window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -409,6 +406,7 @@ onMounted(async () => {
 .featured-name {
     font-family: 'K2D', thin;
     font-size: 3rem;
+    width: 130%;
     font-weight: 400;
     color: white;
     line-height: 1.1;
@@ -421,17 +419,17 @@ onMounted(async () => {
 }
 
 .featured-synopsis {
-    font-size: 1.3rem;
-    line-height: 1.6;
-    color: white;
-    margin-top: 2rem;
-    margin-bottom: 2rem;
-    display: -webkit-box;
-    -webkit-line-clamp: 12;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+  font-size: 1.3rem;
+  line-height: 1.6;
+  color: white;
+  margin-top: 1rem;
+  margin-bottom: 0rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 12;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 
-    width: 120%;
+  width: 120%;
 }
 
 .featured-rating {

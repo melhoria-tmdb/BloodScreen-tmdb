@@ -34,6 +34,7 @@ const fetchSuggestions = async () => {
 }
 
 const selectSuggestion = (movie) => {
+  console.log('Filme selecionado com ID:', movie.id); // ⬅️ ADICIONE ESTA LINHA
   query.value = movie.title
   showSuggestions.value = false
   emit('select', movie.id)
@@ -65,8 +66,9 @@ const searchAndSelect = async () => {
 
     const selected = exact || results[0]; // caso não exista exato, pega o mais relevante
 
-    emit("select", selected.id);
     showSuggestions.value = false;
+    emit("select", selected.id);
+
   } catch (err) {
     console.error("Erro ao buscar filme:", err);
   }
@@ -83,18 +85,30 @@ const clearSearch = () => {
 
 <template>
   <div class="input-wrap">
-    <input type="text" v-model="query" @input="handleInput" @keyup.enter="searchAndSelect"
-      placeholder="Pesquisar em filmes..." class="pesquisa" @focus="showSuggestions = suggestions.length > 0"
-      @blur="setTimeout(() => (showSuggestions = false), 150)" />
+   <input
+  type="text"
+  v-model="query"
+  @input="handleInput"
+  @keyup.enter="searchAndSelect"
+  placeholder="Pesquisar em filmes..."
+  class="pesquisa"
+  @focus="showSuggestions = suggestions.length > 0"
+  @blur="showSuggestions = false"
+/>
     <i v-if="query" class="mdi mdi-close-thick" @click="clearSearch"></i>
     <i class="mdi mdi-magnify" @click="searchAndSelect"></i>
 
 
     <ul v-if="showSuggestions" class="suggestion-list">
-      <li v-for="s in suggestions" :key="s.id" @click="selectSuggestion(s)" class="suggestion-item">
-        <img :src="`https://image.tmdb.org/t/p/w92${s.poster_path}`" />
-        <span>{{ s.title }}</span>
-      </li>
+      <li
+    v-for="s in suggestions"
+    :key="s.id"
+    @mousedown.prevent="selectSuggestion(s)"
+    class="suggestion-item"
+  >
+    <img :src="`https://image.tmdb.org/t/p/w92${s.poster_path}`" />
+    <span>{{ s.title }}</span>
+  </li>
     </ul>
   </div>
 </template>
@@ -162,6 +176,7 @@ const clearSearch = () => {
   outline: none;
   box-shadow: none;
 }
+
 .pesquisa::placeholder {
   color: var(--text);
 }

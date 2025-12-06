@@ -2,8 +2,8 @@
   <div class="breakout-wrap">
     <div class="hud">
       <div class="left">
-        <div>Pontuação: {{ score }} | Recorde: {{ highScoreBreakout }}</div>
-        <div id="lives">Vidas: {{ lives }}</div>
+        <div>Pontuação: {{ score }} | Recorde: {{ highScoreBreakout }} |</div>
+        <div id="lives"> Vidas: {{ lives }}</div>
       </div>
       <div class="right">
         <button @click="restart" class="restart">Reiniciar</button>

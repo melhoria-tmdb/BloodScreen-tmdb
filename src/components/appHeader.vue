@@ -2,8 +2,6 @@
 import { computed, inject } from 'vue';
 import { useRoute } from 'vue-router';
 
-// ⬅️ Importe a SearchBar, pois ela será usada dentro do Header,
-// mas apenas em certas Views (TV e Filmes)
 import SearchBarShow from '@/components/Shows/SearchBarShow.vue';
 import SearchBarMovie from '@/components/Movies/SearchBarMovie.vue';
 
@@ -25,33 +23,22 @@ const props = defineProps({
     type: Function,
     required: true
   },
-  // Recebe o manipulador para o evento 'select' da SearchBar
-  onSearchSelect: {
-    type: Function,
-    default: () => {} // Define um default vazio para evitar erro se não for passado
-  }
 });
 
-// 🌟 1. INJETA a função. Se não encontrar (ex: estamos na Home), usa uma função vazia.
-const injectedSearchSelect = inject('handleSearchSelect', () => {
-    // console.log('Função de seleção de pesquisa não injetada (provavelmente HomeView)');
-});
-
-const searchHandler = computed(() => {
-    return props.showSearchBar ? injectedSearchSelect : props.onSearchSelect;
+const searchHandler = inject('handleSearchSelect', () => {
+  // console.log('Função de seleção de pesquisa não injetada (provavelmente HomeView)');
 });
 
 const currentSearchBarComponent = computed(() => {
-    // ESSA LÓGICA COBRE AS VIEWS PRINCIPAIS E OS SUBGÊNEROS
-    if (route.path.startsWith('/filmes')) {
-        return SearchBarMovie;
-    }
+  if (route.path.startsWith('/filmes')) {
+    return SearchBarMovie;
+  }
 
-    if (route.path.startsWith('/tv')) {
-        return SearchBarShow;
-    }
+  if (route.path.startsWith('/tv')) {
+    return SearchBarShow;
+  }
 
-    return null;
+  return null;
 });
 
 </script>
@@ -72,8 +59,11 @@ const currentSearchBarComponent = computed(() => {
     </nav>
 
     <div v-if="showSearchBar && currentSearchBarComponent" class="header-search-container">
-      <component :is="currentSearchBarComponent" @select="searchHandler" />
-    </div>
+    <component
+        :is="currentSearchBarComponent"
+        @select="searchHandler"
+    />
+</div>
 
     <div class="menu-container">
       <button @click="props.onMenuClick" class="p-2 border rounded text-3xl color-target" id="Menu">
@@ -138,8 +128,4 @@ header {
   max-width: 400px;
   margin: 0 auto;
 }
-
-
-
-
 </style>
