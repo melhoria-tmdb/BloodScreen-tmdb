@@ -5,6 +5,14 @@ import BreakoutGame from './views/Games/BreakoutGame.vue'
 import GatoRunnerGame from './views/Games/GatoRunnerGame.vue'
 import appHeader from './components/appHeader.vue'
 
+onMounted(() => {
+  document.body.classList.add('no-scroll-x')
+})
+
+onUnmounted(() => {
+  document.body.classList.remove('no-scroll-x')
+})
+
 // ⬅️ NOVO: Inicializar a rota para checagem de página
 const route = useRoute()
 

@@ -45,7 +45,7 @@ function estrelas(rating) {
 
 .show-card {
   width: 300px;
-  height: 31rem;
+  height: 31.5rem;
   border-radius: 0.75rem;
   overflow: hidden;
   background-color: #111;

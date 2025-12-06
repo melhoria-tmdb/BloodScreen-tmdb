@@ -1,5 +1,5 @@
 <script setup>
-import { ref, provide, watch } from 'vue';
+import { ref, provide, watch, computed } from 'vue';
 import api from '@/plugins/axios';
 import Loading from 'vue-loading-overlay';
 import { useRouter, useRoute } from 'vue-router';
@@ -11,11 +11,14 @@ const router = useRouter();
 const route = useRoute();
 const shows = ref([]);
 
+const totalShows = ref([]);
+const showsPerPage = 20;
+
 const topRatedShows = ref([]);
 const currentFeaturedIndex = ref(0);
 
 const currentPage = ref(1);
-const totalPagesAvailable = ref(1);
+const totalPages = ref(1);
 const hasMoreShows = ref(true);
 
 const currentSubgenreDetails = ref(null);
@@ -27,6 +30,65 @@ const props = defineProps({
     type: String,
     required: true,
   },
+});
+
+const displayedShows = computed(() => {
+  const start = (currentPage.value - 1) * showsPerPage;
+  const end = start + showsPerPage;
+
+  return totalShows.value.slice(start, end);
+});
+
+const showsTopHalf = computed(() => {
+  return displayedShows.value.slice(0, 10);
+});
+
+const showsBottomHalf = computed(() => {
+  return displayedShows.value.slice(10);
+});
+
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page;
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+};
+
+
+const prevPage = () => {
+  goToPage(currentPage.value - 1);
+};
+
+const nextPage = () => {
+  goToPage(currentPage.value + 1);
+};
+
+const pageNumbers = computed(() => {
+  const pages = [];
+  const maxVisible = 7; // Por exemplo, mostra até 7 botões de página
+  const half = Math.floor(maxVisible / 2);
+  let startPage = Math.max(1, currentPage.value - half);
+  let endPage = Math.min(totalPages.value, startPage + maxVisible - 1);
+
+  if (endPage - startPage + 1 < maxVisible) {
+    startPage = Math.max(1, endPage - maxVisible + 1);
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i);
+  }
+
+  // Adiciona o primeiro e o último se estiverem faltando (com elipses)
+  if (startPage > 1) {
+    pages.unshift(1, '...');
+  }
+  if (endPage < totalPages.value) {
+    pages.push('...', totalPages.value);
+  }
+
+  // Filtra duplicatas de '...' e garante a ordem
+  return Array.from(new Set(pages));
 });
 
 
@@ -74,24 +136,28 @@ const listShows = async (sub) => {
 
   try {
     isLoading.value = true;
-    shows.value = [];
+    totalShows.value = []; // Limpa o array mestre
     topRatedShows.value = [];
     currentFeaturedIndex.value = 0;
 
-    currentPage.value = 1;
-    hasMoreShows.value = true;
+    currentPage.value = 1; // Volta para a página 1
+    totalPages.value = 1;
 
     currentSubgenreDetails.value = sub;
     currentSubgenreName.value = sub.name;
-    currentSubgenreBanner.value = sub.bannerPath; // Corrigido o banner
+    currentSubgenreBanner.value = sub.bannerPath;
 
     const allResults = [];
-    const pagesToLoadInitially = 3;
+    // Aumentamos o carregamento inicial para ter mais séries para paginar.
+    // O TMDB limita a 500 resultados (25 páginas por keyword). Vamos tentar 15.
+    const pagesToLoad = 15;
     const keywordsToUse = sub.keywords;
     const pagePromises = [];
 
     for (const kw of keywordsToUse) {
-      for (let page = 1; page <= pagesToLoadInitially; page++) {
+      for (let page = 1; page <= pagesToLoad; page++) {
+        // Adicionamos um pequeno delay ou usamos um limitador de requests
+        // se o TMDB estiver rejeitando muitas requests simultâneas.
         pagePromises.push(
           api.get('discover/tv', {
             params: {
@@ -112,16 +178,7 @@ const listShows = async (sub) => {
 
     for (const list of responses) allResults.push(...list);
 
-    // Processamento para encontrar séries únicas
     const uniqueShows = Array.from(new Map(allResults.map((s) => [s.id, s])).values());
-
-    // 🔑 CORREÇÃO DA LÓGICA DE PAGINAÇÃO: Presume que há mais se encontrou pelo menos uma página de resultados únicos.
-    currentPage.value = pagesToLoadInitially;
-    if (uniqueShows.length < 20) {
-        hasMoreShows.value = false;
-    } else {
-        hasMoreShows.value = true;
-    }
 
     const sortedShows = uniqueShows
       .filter((s) => s.poster_path)
@@ -129,16 +186,27 @@ const listShows = async (sub) => {
         return (b.vote_average - a.vote_average) || (b.popularity - a.popularity);
       });
 
-    const featuredCount = 5;
-    topRatedShows.value = sortedShows.slice(0, featuredCount);
+    // 1. 💾 ARMAZENA TODOS OS RESULTADOS FILTRADOS
+    totalShows.value = sortedShows;
 
-    shows.value = sortedShows.slice(featuredCount);
+    // 2. 🔢 CALCULA O TOTAL DE PÁGINAS
+    totalPages.value = Math.ceil((totalShows.value.length - 5) / showsPerPage); // -5 por causa das 5 melhores
+
+    // 3. ✂️ SEPARA AS 5 MELHORES
+    const featuredCount = 5;
+    topRatedShows.value = totalShows.value.slice(0, featuredCount);
+
+    // 4. 🔪 AS DEMAIS VÃO PARA PAGINAÇÃO
+    const paginatedShows = totalShows.value.slice(featuredCount);
+    totalShows.value = paginatedShows; // totalShows agora contém apenas o conteúdo paginável
+
 
   } catch (err) {
     console.error('Erro listShows:', err);
+    totalShows.value = [];
     shows.value = [];
     topRatedShows.value = [];
-    hasMoreShows.value = false;
+    totalPages.value = 1;
   } finally {
     isLoading.value = false;
   }
@@ -165,61 +233,6 @@ watch(
   { immediate: true }
 );
 
-const loadMoreShows = async () => {
-  if (isLoading.value || !hasMoreShows.value) return;
-
-  isLoading.value = true;
-  currentPage.value++;
-
-  const sub = currentSubgenreDetails.value;
-  if (!sub) {
-    isLoading.value = false;
-    return;
-  }
-
-  const keywordsToUse = sub.keywords;
-  const pageToLoad = currentPage.value;
-  const newResults = [];
-
-  try {
-    const responses = await Promise.all(
-      keywordsToUse.map((kw) =>
-        api.get('discover/tv', {
-          params: {
-            with_keywords: kw,
-            language: 'pt-BR',
-            sort_by: 'vote_average.desc', // Padronizado com listShows
-            include_adult: false,
-            page: pageToLoad,
-          },
-        })
-          .then((r) => r.data.results || [])
-          .catch(() => [])
-      )
-    );
-
-    for (const list of responses) newResults.push(...list);
-
-    // 1. Filtra resultados duplicados
-    const currentIds = new Set(shows.value.map(s => s.id));
-    const uniqueNewShows = newResults
-      .filter(s => s.poster_path && !currentIds.has(s.id));
-
-    // 2. Anexa os novos resultados
-    shows.value.push(...uniqueNewShows);
-
-    // 3. Verifica se há mais para carregar
-    if (uniqueNewShows.length === 0) {
-      hasMoreShows.value = false;
-    }
-
-  } catch (err) {
-    console.error('Erro loadMoreShows:', err);
-    hasMoreShows.value = false;
-  } finally {
-    isLoading.value = false;
-  }
-};
 
 </script>
 
@@ -234,60 +247,82 @@ const loadMoreShows = async () => {
 
     <loading v-model:active="isLoading" is-full-page />
 
-    <div v-if="topRatedShows.length > 0" class="top-rated-carousel-wrapper">
-      <h2 class="top-rated-title">As Melhores Avaliações</h2>
-
-      <div class="featured-show-card" @click="handleShowSelect(topRatedShows[currentFeaturedIndex].id)">
-        <div class="featured-poster-wrapper">
-          <img :src="`https://image.tmdb.org/t/p/w500${topRatedShows[currentFeaturedIndex].poster_path}`"
-            :alt="topRatedShows[currentFeaturedIndex].name" class="featured-poster" />
-
-          <div class="carousel-controls">
-            <button @click.stop="prevShow" class="nav-button prev-button">
-              &lt;
-            </button>
-
-            <span class="carousel-counter">
-              {{ currentFeaturedIndex + 1 }}/{{ topRatedShows.length }}
-            </span>
-
-            <button @click.stop="nextShow" class="nav-button next-button">
-              &gt;
-            </button>
-          </div>
-        </div>
-
-        <div class="featured-info">
-          <h3 class="featured-name">
-            {{ topRatedShows[currentFeaturedIndex].name }}
-            <span class="featured-year">({{ new Date(topRatedShows[currentFeaturedIndex].first_air_date).getFullYear()
-              }})</span>
-          </h3>
-
-          <p class="featured-synopsis">{{ topRatedShows[currentFeaturedIndex].overview }}</p>
-
-          <div class="featured-meta">
-            <p class="featured-rating">⭐ Avaliação: {{ topRatedShows[currentFeaturedIndex].vote_average.toFixed(1) }} /
-              10</p>
-          </div>
-        </div>
-      </div>
-    </div>
     <div id="shows">
-      <h2 v-if="shows.length > 0">Mais Recomendados de {{ currentSubgenreName }}</h2>
-      <ShowList :shows="shows" @select="handleShowSelect" />
+      <h2 v-if="displayedShows.length > 0">Recomendados (Pág. {{ currentPage }})</h2>
 
-      <div class="load-more-container">
-        <button v-if="hasMoreShows" @click="loadMoreShows" :disabled="isLoading" class="load-more-button">
-          {{ isLoading ? 'Carregando...' : 'Carregar Mais Séries' }}
-        </button>
-        <p v-else-if="shows.length > 0" class="no-more-shows">
-          Você chegou ao fim da lista de séries deste subgênero.
-        </p>
+      <ShowList :shows="showsTopHalf" @select="handleShowSelect" />
+
+      <div v-if="topRatedShows.length > 0" class="top-rated-carousel-wrapper">
+
+        <div class="featured-show-card" @click="handleShowSelect(topRatedShows[currentFeaturedIndex].id)">
+          <div class="poster-and-controls-column">
+            <div class="featured-poster-wrapper">
+              <img :src="`https://image.tmdb.org/t/p/w500${topRatedShows[currentFeaturedIndex].poster_path}`"
+                :alt="topRatedShows[currentFeaturedIndex].name" class="featured-poster" />
+            </div>
+            <div class="carousel-controls">
+              <div class="arrows">
+                <button @click.stop="prevShow" class="nav-button prev-button">
+                  &lt;
+                </button>
+                <button @click.stop="nextShow" class="nav-button next-button">
+                  &gt;
+                </button>
+              </div>
+              <div class="numbers">
+                <span class="carousel-counter">
+                  {{ currentFeaturedIndex + 1 }}/{{ topRatedShows.length }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="featured-info">
+            <h3 class="featured-name">
+              {{ topRatedShows[currentFeaturedIndex].name }}
+              <span class="featured-year">({{ new Date(topRatedShows[currentFeaturedIndex].first_air_date).getFullYear()
+              }})</span>
+            </h3>
+
+            <p class="featured-synopsis">{{ topRatedShows[currentFeaturedIndex].overview }}</p>
+
+            <div class="featured-meta">
+              <p class="featured-rating">Avaliação: {{ topRatedShows[currentFeaturedIndex].vote_average.toFixed(1) }}
+                /
+                10.0</p>
+            </div>
+          </div>
+        </div>
       </div>
+
     </div>
 
+    <ShowList :shows="showsBottomHalf" @select="handleShowSelect" />
+
+    <div class="pagination-container" v-if="totalPages > 1">
+
+      <button @click="prevPage" :disabled="currentPage === 1 || isLoading" class="pagination-button nav-arrow">
+        &lt; Anterior
+      </button>
+
+      <template v-for="(page, index) in pageNumbers" :key="index">
+
+        <span v-if="page === '...'" class="page-ellipsis">...</span>
+
+        <button v-else @click="goToPage(page)" :class="['pagination-button', { 'active-page': page === currentPage }]"
+          :disabled="isLoading">
+          {{ page }}
+        </button>
+
+      </template>
+
+      <button @click="nextPage" :disabled="currentPage === totalPages || isLoading" class="pagination-button nav-arrow">
+        Próxima &gt;
+      </button>
+
+    </div>
   </div>
+
 </template>
 
 <style scoped>
@@ -303,29 +338,37 @@ const loadMoreShows = async () => {
 
 #body {
   background-color: var(--bg);
+  color: var(--text);
 
   background-image: linear-gradient(to bottom,
       var(--bg) 0%,
-      var(--bg) 15%,
+      var(--bg) 5%,
 
+      #310101 40%,
       #310101 50%,
+      #310101 60%,
 
-      var(--bg) 85%,
+      var(--bg) 95%,
       var(--bg) 100%);
 
   min-height: 100vh;
+  padding-top: 50px;
+  /* Ajuste este valor conforme o necessário */
 }
+
 
 .subgenre-title {
   font-family: 'K2D', bold;
   font-size: 4rem;
-  color: white;
+  color: var(--text);
   text-align: center;
-  margin-top: -100px;
   position: relative;
   z-index: 2;
   text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+  margin-top: -100px;
   margin-bottom: 50px;
+  /* Mantém o espaçamento para o conteúdo abaixo */
+
 }
 
 #genres {
@@ -342,63 +385,45 @@ const loadMoreShows = async () => {
 /* 🌟 ESTILOS DA LISTA DE SÉRIES BEM AVALIADAS 🌟 */
 
 .top-rated-carousel-wrapper {
-  width: 85%;
+  width: 100%;
   max-width: 1400px;
-  margin: 0 auto 5rem auto;
+  margin: 5rem auto 5rem auto;
+}
+
+.poster img {
+  border-radius: 6px;
+  overflow: hidden;
 }
 
 .top-rated-container {
   width: 85%;
   max-width: 1400px;
-  margin: 0 auto 5rem auto;
+  margin: 5rem auto 5rem auto;
   display: flex;
   flex-direction: column;
   gap: 2.5rem;
-  /* Espaço entre cada item de destaque */
 }
 
-.top-rated-title {
-  font-family: 'K2D', sans-serif;
-  font-size: 2.5rem;
-  color: #ff4747;
-  margin-bottom: 1.5rem;
-  text-align: left;
-  /* Alinhamos à esquerda, acima do carrossel */
-  /* Centraliza o título da seção */
-  border-bottom: 2px solid #310101;
-  width: 80%;
-  /* Alinha com a largura do cartão */
-  padding-bottom: 0.5rem;
-  margin: 0 auto 2rem auto;
-}
 
 .featured-show-card {
   display: flex;
-  align-items: flex-start;
-  padding: 2rem;
-  background-color: #1a1a1a;
-  /* Cor ligeiramente diferente do fundo para contraste */
+  align-items: center;
+  padding: 4rem;
+  background-color: transparent;
   border-radius: 15px;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   width: 80%;
   /* Ajuste a largura do cartão */
   margin: 0 auto;
   cursor: pointer;
+  gap: 20rem;
 }
 
-.featured-show-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 20px rgba(255, 71, 71, 0.2);
-}
 
 .featured-poster-wrapper {
   position: relative;
-  flex-shrink: 0;
-  width: 200px;
-  /* Um pouco menor que antes */
-  height: 300px;
-  margin-right: 2rem;
+  width: 300px;
+  height: 500px;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
   border-radius: 5px;
   overflow: hidden;
@@ -414,33 +439,39 @@ const loadMoreShows = async () => {
   flex-grow: 1;
   color: var(--text);
   text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .featured-name {
-  font-family: 'K2D', sans-serif;
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  color: #fff;
+  font-family: 'K2D', thin;
+  font-size: 3rem;
+  font-weight: 400;
+  color: white;
   line-height: 1.1;
 }
 
 .featured-year {
   font-size: 1.2rem;
   font-weight: 300;
-  color: #aaa;
+  color: white;
 }
 
 .featured-synopsis {
-  font-size: 1rem;
+  font-size: 1.3rem;
   line-height: 1.6;
-  color: #ccc;
-  margin-bottom: 1rem;
+
+  color: white;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
   /* Mantém o limite de linhas para evitar textos gigantescos */
   display: -webkit-box;
-  -webkit-line-clamp: 6;
+  -webkit-line-clamp: 12;
   -webkit-box-orient: vertical;
   overflow: hidden;
+
+  width:120%;
 }
 
 .featured-rating {
@@ -449,30 +480,36 @@ const loadMoreShows = async () => {
   font-weight: 600;
 }
 
+.poster-and-controls-column {
+  display: flex;
+  flex-direction: column;
+  /* Faz com que o pôster e os controles fiquem empilhados */
+  flex-shrink: 0;
+  width: 300px;
+}
+
 /* ⬅️➡️ CONTROLES DE CARROSSEL 1/3 (Estilo Figma) ⬅️➡️ */
 
 .carousel-controls {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.5rem 0.75rem;
   background-color: transparent;
-  color: var(--text);
+  color: #ADADAD;
+  font-family: 'K2D', regular;
+  margin-top: 10px;
 }
 
 .nav-button {
   background: none;
   border: none;
-  color: white;
-  font-size: 1.5rem;
+  color :#ADADAD;
+  font-size: 1.1rem;
   cursor: pointer;
-  padding: 0 5px;
   transition: color 0.2s;
   line-height: 1;
+  font-weight: 10;
+  font-family: 'K2D', regular;
   /* Alinhamento vertical do chevron */
 }
 
@@ -483,45 +520,74 @@ const loadMoreShows = async () => {
 
 .carousel-counter {
   font-size: 0.9rem;
-  font-family: monospace;
+  font-family: 'K2D', thin;
 }
 
-/* 🚨 NOVOS ESTILOS: Botão Carregar Mais */
 
-.load-more-container {
-  text-align: center;
+/* 🚨 NOVOS ESTILOS: Paginação Numerada */
+
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
   margin-top: 3rem;
-  margin-bottom: 5rem;
+  margin-bottom: 4rem;
 }
 
-.load-more-button {
+.pagination-button {
+  background-color: #333;
+  color: white;
+  border: 1px solid #444;
+  padding: 10px 15px;
+  border-radius: 5px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+  min-width: 40px;
+  /* Garante que os números 1, 2, etc., tenham largura mínima */
+  margin-bottom: 1.5rem;
+}
+
+.pagination-button:hover:not(:disabled):not(.active-page) {
+  background-color: #444;
+  border-color: #ff4747;
+}
+
+.pagination-button:disabled {
+  background-color: #222;
+  color: #666;
+  cursor: not-allowed;
+  border-color: #333;
+}
+
+.active-page {
   background-color: #ff4747;
   /* Cor de destaque */
   color: white;
-  border: none;
-  padding: 1rem 2rem;
-  border-radius: 8px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.1s;
-  box-shadow: 0 4px 15px rgba(255, 71, 71, 0.4);
+  font-weight: bold;
+  border-color: #ff4747;
+  cursor: default;
 }
 
-.load-more-button:hover:not(:disabled) {
-  background-color: #c71616;
-  transform: translateY(-2px);
+.active-page:hover {
+  background-color: #ff4747;
+  /* Sem mudança de hover para a página ativa */
 }
 
-.load-more-button:disabled {
-  background-color: #555;
-  cursor: not-allowed;
-  opacity: 0.7;
+.nav-arrow {
+  background-color: #1a1a1a;
+  border-color: #ff4747;
 }
 
-.no-more-shows {
+.nav-arrow:hover:not(:disabled) {
+  background-color: #ff4747;
+  color: white;
+}
+
+.page-ellipsis {
   color: #aaa;
-  font-size: 1rem;
-  padding: 1rem;
+  padding: 10px 5px;
+  font-size: 1.2rem;
 }
 </style>
