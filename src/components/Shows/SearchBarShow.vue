@@ -138,13 +138,14 @@ const clearSearch = () => {
 <style scoped>
 .input-wrap {
   position: fixed;
-  left: 50%;
+  left: 51.7%;
   transform: translate(-50%, -50%);
   z-index: 9999;
   display: inline-block;
   text-align: center;
   width: 100%;
   max-width: 400px;
+
 }
 
 .input-wrap i {

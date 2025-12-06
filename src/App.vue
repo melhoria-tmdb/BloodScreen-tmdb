@@ -5,6 +5,47 @@ import BreakoutGame from './views/Games/BreakoutGame.vue'
 import GatoRunnerGame from './views/Games/GatoRunnerGame.vue'
 import appHeader from './components/appHeader.vue'
 
+const isHeaderHidden = ref(false);
+let lastScrollPosition = 0; // Armazena a posição anterior do scroll
+
+// --- Constantes de Ajuste ---
+// Ajuste estas constantes com base na altura real do seu header e sensibilidade desejada
+const HEADER_HEIGHT = 100; // Altura do seu header em pixels
+const SCROLL_THRESHOLD = 50; // Quantidade de scroll para cima para o header reaparecer
+
+
+const handleScroll = () => {
+    const currentScrollPosition = window.scrollY;
+
+    if (currentScrollPosition <= HEADER_HEIGHT) {
+        isHeaderHidden.value = false;
+        lastScrollPosition = currentScrollPosition;
+        return;
+    }
+
+    if (currentScrollPosition > lastScrollPosition) {
+        isHeaderHidden.value = true;
+    }
+
+    else if (lastScrollPosition - currentScrollPosition > SCROLL_THRESHOLD) {
+        isHeaderHidden.value = false;
+    }
+
+    lastScrollPosition = currentScrollPosition;
+};
+
+// ----------------------------------------------------
+// Lifecycle Hooks
+// ----------------------------------------------------
+onMounted(() => {
+    window.addEventListener('scroll', handleScroll);
+    lastScrollPosition = window.scrollY;
+});
+
+onUnmounted(() => {
+    window.removeEventListener('scroll', handleScroll);
+});
+
 onMounted(() => {
   document.body.classList.add('no-scroll-x')
 })
@@ -13,14 +54,13 @@ onUnmounted(() => {
   document.body.classList.remove('no-scroll-x')
 })
 
-// ⬅️ NOVO: Inicializar a rota para checagem de página
 const route = useRoute()
 
-// ⬅️ Se a rota é a Home (com os links Filmes/Séries)
 const isHome = computed(() => route.path === '/')
 
-// ⬅️ Se a rota é TV ou Filmes (com a SearchBar)
-const isTVOrMovie = computed(() => route.path === '/tv' || route.path === '/filmes')
+const isTVOrMovie = computed(() =>
+    route.path.startsWith('/tv') || route.path.startsWith('/filmes')
+)
 
 /* ============================================================
    TEMA (Light/Dark)
@@ -162,6 +202,7 @@ onUnmounted(() => {
 
 <template>
 <appHeader
+    :class="{ 'header-hidden': isHeaderHidden }" class="smart-header"
     :show-nav-links="isHome"
     :show-search-bar="isTVOrMovie"
     :on-menu-click="Menu"
@@ -480,5 +521,29 @@ Balada animação
   position: absolute;
   right: 8px;
   top: 8px;
+}
+/* ============================================================
+ SMART HEADER (Esconde/Mostra no Scroll)
+============================================================ */
+
+.smart-header {
+    /* Mantenha o header fixo no topo */
+
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 999; /* Alto o suficiente para ficar acima de todo o conteúdo */
+
+
+    height: 100px;
+    background-color: var(--bg);
+
+    /* Configuração da transição suave (0.3s com aceleração suave) */
+    transition: transform 0.3s ease-in-out;
+}
+
+/* Estado oculto: move o header para fora da tela */
+.header-hidden {
+    transform: translateY(-150%);
 }
 </style>

@@ -163,7 +163,7 @@ const listShows = async (sub) => {
             params: {
               with_keywords: kw,
               language: 'pt-BR',
-              sort_by: 'vote_average.desc',
+              sort_by: 'popularity.desc',
               include_adult: false,
               page: page,
             },
@@ -183,7 +183,7 @@ const listShows = async (sub) => {
     const sortedShows = uniqueShows
       .filter((s) => s.poster_path)
       .sort((a, b) => {
-        return (b.vote_average - a.vote_average) || (b.popularity - a.popularity);
+        return (b.popularity - a.popularity) || (b.popularity - a.popularity);
       });
 
     // 1. 💾 ARMAZENA TODOS OS RESULTADOS FILTRADOS

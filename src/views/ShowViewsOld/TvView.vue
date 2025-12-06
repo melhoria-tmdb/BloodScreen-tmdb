@@ -126,6 +126,7 @@ const listShows = async (sub) => {
   // 🚨 REQUERIMENTO: Se o subgênero selecionado for DIFERENTE de 'Todos' (id !== null),
   // navegamos para a view dinâmica.
   if (sub && sub.id !== null) {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     router.push({
       name: 'SubgenreShow',
       params: { subgenreId: sub.id }
@@ -139,6 +140,7 @@ const listShows = async (sub) => {
   if (!sub || sub.id !== null) return; // Deve ser o subgênero 'Todos'
 
   try {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     isLoading.value = true;
     totalShows.value = [];
     topRatedShows.value = [];
@@ -163,7 +165,7 @@ const listShows = async (sub) => {
               with_keywords: kw,
               language: 'pt-BR',
               // Usamos 'vote_average.desc' para listar as melhores séries
-              sort_by: 'vote_average.desc',
+              sort_by: 'popularity.desc',
               include_adult: false,
               page: page,
             },
@@ -186,13 +188,9 @@ const listShows = async (sub) => {
       .filter((s) => s.poster_path)
       .sort((a, b) => {
         // Prioriza vote_average, depois popularity
-        return (b.vote_average - a.vote_average) || (b.popularity - a.popularity);
+        return (b.popularity - a.popularity) || (b.popularity - a.popularity);
       });
 
-
-    // 1. 💾 ARMAZENA TODOS OS RESULTADOS FILTRADOS
-    // Para simplificar, vamos limitar o total de shows a um número razoável se necessário.
-    // 500 resultados é um limite comum no TMDB, mas manteremos o array completo por enquanto.
 
     // 2. ✂️ SEPARA AS 5 MELHORES
     const featuredCount = 20;
@@ -200,7 +198,7 @@ const listShows = async (sub) => {
 
     // 3. 🔪 AS DEMAIS VÃO PARA PAGINAÇÃO
     const paginatedShows = sortedShows.slice(featuredCount);
-    totalShows.value = paginatedShows; // totalShows agora contém apenas o conteúdo paginável
+    totalShows.value = paginatedShows;
 
     // 4. 🔢 CALCULA O TOTAL DE PÁGINAS (do conteúdo paginável)
     totalPages.value = Math.ceil(totalShows.value.length / showsPerPage);
@@ -224,6 +222,7 @@ const handleShowSelect = (showId) => {
 provide('handleSearchSelect', handleShowSelect);
 
 onMounted(async () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
   // Carrega o subgênero 'Todos' ao montar a view
   const allSubgenre = subgenres.find(sub => sub.id === null);
   if (allSubgenre) {
@@ -241,8 +240,6 @@ onMounted(async () => {
   </div>
 
   <div id="body">
-
-    <h1 class="subgenre-title">{{ subgenres[0].name }}</h1>
 
     <div id="genres">
       <SubgenreListShow :subgenres="selectableSubgenres" :current="currentSubgenre" @change="listShows" />
@@ -283,7 +280,7 @@ onMounted(async () => {
             <h3 class="featured-name">
               {{ topRatedShows[currentFeaturedIndex].name }}
               <span class="featured-year">({{ new Date(topRatedShows[currentFeaturedIndex].first_air_date).getFullYear()
-              }})</span>
+                }})</span>
             </h3>
 
             <p class="featured-synopsis">{{ topRatedShows[currentFeaturedIndex].overview }}</p>
@@ -296,7 +293,7 @@ onMounted(async () => {
           </div>
         </div>
       </div>
-      </div>
+    </div>
 
     <ShowList :shows="showsBottomHalf" @select="handleShowSelect" />
 
@@ -322,7 +319,7 @@ onMounted(async () => {
       </button>
 
     </div>
-    </div>
+  </div>
 </template>
 
 <style scoped>
@@ -344,9 +341,8 @@ onMounted(async () => {
       var(--bg) 0%,
       var(--bg) 5%,
 
-      #310101 40%,
-      #310101 50%,
-      #310101 60%,
+      #310101 55%,
+      #310101 65%,
 
       var(--bg) 95%,
       var(--bg) 100%);

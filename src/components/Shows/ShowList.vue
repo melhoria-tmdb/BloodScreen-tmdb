@@ -23,7 +23,7 @@ function estrelas(rating) {
     <div v-for="show in shows" :key="show.id" class="show-card" @click="emit('select', show.id)">
       <img :src="`https://image.tmdb.org/t/p/w500${show.poster_path}`" :alt="show.name" />
       <div class="show-details">
-        <p class="show-stars">{{ estrelas(show.vote_average) }}</p> <!-- Exibe as estrelas -->
+        <p class="show-stars">{{ estrelas(show.vote_average) }}</p>
         <p class="show-title">{{ show.name }}</p>
         <p class="show-release-date">
           {{ new Date(show.first_air_date).toLocaleDateString('pt-BR') }}
@@ -91,6 +91,7 @@ function estrelas(rating) {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
+  margin: 0;
 }
 
 .show-title {
@@ -101,11 +102,13 @@ function estrelas(rating) {
   line-height: 1.3rem;
   margin-top: 2vw;
   font-family: 'K2D', thin;
+  margin: 0;
 }
 
 .show-date {
   font-size: 0.85rem;
   color: var(--text);
+  margin: 0;
 }
 
 .show-genres {

@@ -1,9 +1,13 @@
 <script setup>
 import { computed, inject } from 'vue';
+import { useRoute } from 'vue-router';
 
 // ⬅️ Importe a SearchBar, pois ela será usada dentro do Header,
 // mas apenas em certas Views (TV e Filmes)
 import SearchBarShow from '@/components/Shows/SearchBarShow.vue';
+import SearchBarMovie from '@/components/Movies/SearchBarMovie.vue';
+
+const route = useRoute();
 
 const props = defineProps({
   // Controla se exibe os links "FILMES" e "SÉRIES" (HomeView)
@@ -31,10 +35,23 @@ const props = defineProps({
 // 🌟 1. INJETA a função. Se não encontrar (ex: estamos na Home), usa uma função vazia.
 const injectedSearchSelect = inject('handleSearchSelect', () => {
     // console.log('Função de seleção de pesquisa não injetada (provavelmente HomeView)');
-}); // <--- ⚠️ A chave de fechamento '})' estava faltando aqui!
+});
 
 const searchHandler = computed(() => {
     return props.showSearchBar ? injectedSearchSelect : props.onSearchSelect;
+});
+
+const currentSearchBarComponent = computed(() => {
+    // ESSA LÓGICA COBRE AS VIEWS PRINCIPAIS E OS SUBGÊNEROS
+    if (route.path.startsWith('/filmes')) {
+        return SearchBarMovie;
+    }
+
+    if (route.path.startsWith('/tv')) {
+        return SearchBarShow;
+    }
+
+    return null;
 });
 
 </script>
@@ -54,8 +71,8 @@ const searchHandler = computed(() => {
       </div>
     </nav>
 
-    <div v-if="showSearchBar" class="header-search-container">
-      <SearchBarShow @select="searchHandler" />
+    <div v-if="showSearchBar && currentSearchBarComponent" class="header-search-container">
+      <component :is="currentSearchBarComponent" @select="searchHandler" />
     </div>
 
     <div class="menu-container">
@@ -99,26 +116,30 @@ header {
 
 #content a {
   text-decoration: none;
-  color: white !important;
+  color: #ffffff;
+  text-shadow: 0 0 0 transparent;
+  transition: all 0.3s ease;
   font-family: 'K2D', thin;
   font-weight: 100;
   font-size: 20px;
 }
 
 #content a:hover {
-  color: red !important;
+  color: white !important;
+  text-shadow: 0 0 12px white;
 }
 
 #content a.router-link-active {
-  color: rgb(240, 29, 29) !important;
+  color: white;
 }
 
 .header-search-container {
-  /* Garante que a barra de pesquisa ocupe o espaço central */
   flex-grow: 1;
-  max-width: 400px; /* Limite o tamanho da barra de pesquisa */
+  max-width: 400px;
   margin: 0 auto;
 }
+
+
 
 
 </style>
