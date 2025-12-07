@@ -220,7 +220,7 @@ onMounted(async () => {
         <img :src="subgenres[0].bannerPath" :alt="`Banner ${subgenres[0].name}`" class="banner-image">
     </div>
 
-    <div id="body">
+    <div id="body" class="page-container custom-scrollbar">
 
         <div id="genres">
             <SubgenreListMovie :subgenres="selectableSubgenres" :current="currentSubgenre" @change="listMovies" />

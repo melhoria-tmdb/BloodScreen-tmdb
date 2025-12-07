@@ -255,10 +255,6 @@ onUnmounted(() => {
             <span class="mdi mdi-auto-mode"></span> Automático
           </div>
 
-          <div class="menu-item color-target" @click="cor">
-            <span class="mdi mdi-account-star"></span> Celebridades
-          </div>
-
           <div class="menu-item color-target" @click="resetCor">
             <span class="mdi mdi-reload"></span> Resetar
           </div>
@@ -326,7 +322,6 @@ button {
   background: none;
   border: none;
   font-size: 1.6rem;
-  color: white;
   cursor: pointer;
 }
 
@@ -358,7 +353,7 @@ button {
   transition: background-color 0.8s ease;
 
   /* Fundo definido no style inline (template) */
-  color: var(--text);
+
   /* 💥 AJUSTE: Redução do padding superior para subir o cabeçalho */
   padding: 20px 0;
 
@@ -382,7 +377,6 @@ button {
   text-decoration: none;
   color: inherit;
 }
-
 .sidebar-content,
 .sidebar-footer {
   display: flex;
@@ -537,8 +531,11 @@ Balada animação
   position: absolute;
   right: 8px;
   top: 8px;
-}
 
+}
+.close-menu{
+color: white !important;
+}
 /* ============================================================
  SMART HEADER (Esconde/Mostra no Scroll)
 ============================================================ */
@@ -553,7 +550,7 @@ Balada animação
   /* Alto o suficiente para ficar acima de todo o conteúdo */
 
 
-  height: 100px;
+  height: 80px;
   background-color: var(--bg);
 
   /* Configuração da transição suave (0.3s com aceleração suave) */

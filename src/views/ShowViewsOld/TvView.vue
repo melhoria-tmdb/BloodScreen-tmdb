@@ -158,7 +158,7 @@ const listShows = async (sub) => {
     const allResults = [];
     // Usamos as keywords do subgênero 'Todos' (horrorKeywordList)
     const keywordsToUse = sub.keywords;
-    const pagesToLoad = 10; // Tentamos carregar 15 páginas por keyword para ter um bom volume
+    const pagesToLoad = 7; // Tentamos carregar 15 páginas por keyword para ter um bom volume
     const pagePromises = [];
 
 

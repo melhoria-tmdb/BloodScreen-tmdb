@@ -106,7 +106,7 @@ header {
 
 #content a {
   text-decoration: none;
-  color: #ffffff;
+  color: #ffffff !important;
   text-shadow: 0 0 0 transparent;
   transition: all 0.3s ease;
   font-family: 'K2D', thin;
@@ -116,7 +116,7 @@ header {
 
 #content a:hover {
   color: white !important;
-  text-shadow: 0 0 12px white;
+  text-shadow: 0 0 12px white !important;
 }
 
 #content a.router-link-active {

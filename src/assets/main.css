@@ -31,6 +31,7 @@ body,
   padding: 0;
   width: 100%; /* O corpo ocupa 100% do HTML (sem margens) */
   height: 100%;
+  
 }
 
 /* usa variáveis para que o tema mude facilmente */
@@ -50,7 +51,28 @@ body.no-scroll-x {
      a menos que haja conteúdo extra. */
   overflow-x: hidden !important;
 }
+/* Para Firefox (suporta scrollbar-width e scrollbar-color) */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #7a0b0b #111; /* Cor do Thumb | Cor da Track */
+  overflow-y: auto;
+}
 
+/* Para navegadores baseados em Webkit (Chrome, Safari, Edge) */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px; /* Largura da barra */
+  height: 8px; /* Altura da barra (para scroll horizontal) */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #111; /* Cor da Track (fundo) */
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #7a0b0b; /* Cor do Thumb (arrastável) */
+  border-radius: 10px;
+}
 /* header usa as mesmas variáveis */
 
 header {

@@ -181,7 +181,7 @@ const listMovies = async (sub) => {
             .filter((m) => m.poster_path) // Filtra sem poster
             .sort((a, b) => {
                 // Ordena por voto médio e depois popularidade
-                return (b.vote_average - a.vote_average) || (b.popularity - a.popularity);
+                return (b.popularity - a.popularity) || (b.popularity - a.popularity);
             });
 
         // 1. 💾 ARMAZENA TODOS OS RESULTADOS FILTRADOS
