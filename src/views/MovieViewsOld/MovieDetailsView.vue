@@ -1,9 +1,55 @@
 <script setup>
-import { defineProps, onMounted, ref, computed, nextTick } from 'vue';
+import { defineProps, onMounted, onUnmounted, ref, computed, nextTick } from 'vue';
 import { useMovieStore } from '@/stores/movie';
 import Loading from 'vue-loading-overlay';
+import 'vue-loading-overlay/dist/css/index.css';
 
-const isLoading = ref(true); // Começa como true
+const isLoading = ref(true);
+let slideshowInterval = null;
+
+const clearSlideshow = () => {
+  if (slideshowInterval) {
+    clearInterval(slideshowInterval);
+    slideshowInterval = null;
+  }
+};
+
+const forceReflow = () => {
+  void document.body.offsetHeight;
+  document.body.style.transform = 'translateZ(0)';
+  setTimeout(() => { document.body.style.transform = ''; }, 50);
+};
+
+const neutralizeRootVars = () => {
+  const root = document.documentElement;
+  root.style.removeProperty('--slide-theme-color');
+  root.style.setProperty('--slide-theme-color', '0,0,0');
+  root.style.removeProperty('scroll');
+};
+
+const disableTransitionsTemporarily = () => {
+  document.documentElement.classList.add('no-transitions-temp');
+};
+const enableTransitions = () => {
+  document.documentElement.classList.remove('no-transitions-temp');
+};
+
+const startSlideshowSafe = () => {
+  if (backdropImages.value.length < 2) return;
+  const transitionDuration = 2000;
+  const visibleDuration = 6000;
+
+  slideshowInterval = setInterval(() => {
+    isFading.value = true;
+    setTimeout(async () => {
+      imageIndex = (imageIndex + 1) % backdropImages.value.length;
+      currentBackgroundImage.value = backdropImages.value[imageIndex];
+      await nextTick();
+      isFading.value = false;
+      nextImageURL.value = backdropImages.value[(imageIndex + 1) % backdropImages.value.length];
+    }, transitionDuration);
+  }, visibleDuration + transitionDuration);
+};
 
 const movieStore = useMovieStore();
 
@@ -16,16 +62,13 @@ const props = defineProps({
 
 const movieTrailerUrl = ref('');
 
-// Variáveis para o Slideshow
-const currentBackgroundImage = ref(''); // URL da imagem atual (no ::before)
-const nextImageURL = ref(''); // URL da próxima imagem (no ::after)
-const backdropImages = ref([]); // Array para armazenar as URLs das imagens
-let imageIndex = 0; // Índice da imagem atual
-let isFading = ref(false); // Flag para controlar o estado da transição
+const currentBackgroundImage = ref('');
+const nextImageURL = ref('');
+const backdropImages = ref([]);
+let imageIndex = 0;
+let isFading = ref(false);
 
-// Função para buscar as imagens de fundo
 const getMovieBackdrops = async (movieId) => {
-  // A chamada agora está corrigida no store
   const imagesData = await movieStore.getMovieImages(movieId);
 
   if (imagesData && imagesData.backdrops && imagesData.backdrops.length > 0) {
@@ -33,31 +76,24 @@ const getMovieBackdrops = async (movieId) => {
       (image) => `https://image.tmdb.org/t/p/w1280${image.file_path}`
     );
 
-    // Garante que a primeira imagem seja carregada.
     const firstImageUrl = backdropImages.value[0];
     currentBackgroundImage.value = firstImageUrl;
 
-    // Se houver mais de uma imagem, define a próxima
     if (backdropImages.value.length > 1) {
       nextImageURL.value = backdropImages.value[1];
     } else {
-      // Se houver apenas uma imagem, a próxima deve ser ela mesma,
-      // ou a string deve ser vazia para evitar a transição,
-      // dependendo de como você quer o comportamento em caso de imagem única.
-      // Vamos deixar a lógica de transição no startSlideshow cuidar disso.
+
       nextImageURL.value = backdropImages.value[0];
     }
     return new Promise((resolve) => {
-      // Cria um elemento Image (DOM element) em memória
       const img = new Image();
-      // O evento 'onload' dispara quando a imagem é baixada e pronta para exibição
       img.onload = resolve;
-      img.onerror = resolve; // Se der erro, resolve do mesmo jeito para não travar
-      // Define a source para iniciar o download
+      img.onerror = resolve;
+
       img.src = firstImageUrl;
     });
   } else {
-    // ⚠️ Se não vierem imagens, logamos para debug
+
     console.warn("Nenhum backdrop encontrado para este filme.");
     currentBackgroundImage.value = '';
     nextImageURL.value = '';
@@ -66,8 +102,7 @@ const getMovieBackdrops = async (movieId) => {
 };
 
 // Função para iniciar o Slideshow
-const startSlideshow = () => {
-  // Se não houver pelo menos 2 imagens, paramos aqui
+/*const startSlideshow = () => {
   if (backdropImages.value.length < 2) {
     return;
   }
@@ -76,35 +111,25 @@ const startSlideshow = () => {
   const visibleDuration = 6000;
 
   setInterval(() => {
-    // 1. Inicia o Fade-in da próxima imagem no ::after
     isFading.value = true;
 
-    // 2. Após o tempo de transição (a imagem no ::after está visível)
     setTimeout(async () => { // 💡 TORNAR ESTE CALLBACK ASSÍNCRONO
-      // Avança o índice
       imageIndex = (imageIndex + 1) % backdropImages.value.length;
 
-      // A) Define a nova imagem atual (no ::before). Esta é a imagem que queremos ver.
       currentBackgroundImage.value = backdropImages.value[imageIndex];
 
-      // 💡 NOVO: Esperar que o Vue renderize a nova currentBackgroundImage no ::before.
-      // Isso é crucial para que o ::before não fique vazio antes de desligarmos o ::after.
       await nextTick();
 
-      // B) Desliga a opacidade do ::after imediatamente
       isFading.value = false;
 
-      // C) Define a próxima imagem (no ::after) para o PRÓXIMO ciclo
       nextImageURL.value = backdropImages.value[(imageIndex + 1) % backdropImages.value.length];
 
-      // ⚠️ Removemos o setTimeout interno de 100ms, pois o nextTick() cuida da sincronização.
 
     }, transitionDuration);
 
   }, visibleDuration + transitionDuration);
-};
+};*/
 
-// Funções de formatação e busca de detalhes
 const getMovieTrailer = async (movieId) => {
   const videosData = await movieStore.getMovieVideos(movieId);
 
@@ -181,17 +206,41 @@ const getMovieCertification = async (movieId) => {
   }
 };
 
-// Lifecycle Hook
 onMounted(async () => {
+  disableTransitionsTemporarily();
+
   await movieStore.getMovieDetail(props.movieId);
   const creditsData = await movieStore.getMovieCredits(props.movieId);
   getMovieDirector(creditsData.crew);
   await getMovieCertification(props.movieId);
   await getMovieTrailer(props.movieId);
+
   await getMovieBackdrops(props.movieId);
-  startSlideshow();
+
+  await nextTick();
+
+  if (document && document.fonts && document.fonts.ready) {
+    try { await document.fonts.ready; } catch(e){ /* ignore */ }
+  }
+
+  neutralizeRootVars();
+
+  forceReflow();
+  await new Promise(r => setTimeout(r, 60));
+
+  startSlideshowSafe();
 
   isLoading.value = false;
+
+  setTimeout(() => {
+    enableTransitions();
+  }, 150);
+
+});
+
+onUnmounted(() => {
+  clearSlideshow();
+  enableTransitions();
 });
 </script>
 
@@ -265,106 +314,68 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.loading-state {
-  /* Garante que ocupe a tela toda */
-  min-height: 100vh;
-  width: 100%;
 
-  /* Centraliza o texto */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  /* Define o fundo e a cor do texto para ser visível */
-  background-color: black;
-  color: white;
-
-  /* Define um tamanho de texto razoável */
-  font-size: 24px;
-  font-family: 'K2D', sans-serif;
-
-  /* Garante que ele apareça acima de qualquer fundo preexistente */
-  z-index: 10;
-  position: fixed; /* Opcional, para garantir que cubra tudo */
-  top: 50px;
-  left: 0;
-}
-/* 1. CONFIGURAÇÃO BASE (O .main agora é apenas o conteiner com cor de fundo) */
 .main {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
   padding: 0;
   margin: 0;
-
+  min-height: 100vh;
+  overflow: hidden;
   background-color: black;
-  /* Fundo preto para o caso de falha de carregamento */
-
+  width: auto;
   position: relative;
 }
 
-/* 2. IMAGEM ATUAL (Anteriormente background-image, agora no ::before) */
 .main::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
-  min-height: 100vh;
+  height: 100vh;
 
-  /* Imagem atual injetada via Vue */
   background-image: var(--current-bg);
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
 
-  /* Overlay escuro aplicado à imagem */
   background-color: rgba(0, 0, 0, 0.7);
   background-blend-mode: darken;
 
   opacity: 1;
   z-index: 1;
-  /* Fica abaixo do elemento em transição (::after) e do conteúdo */
 }
 
-/* 3. IMAGEM PRÓXIMA (Pseudo-elemento que faz o fade-in) */
 .main::after {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
-  min-height: 100vh;
+  height: 100vh;
   z-index: 2;
-  /* Fica acima do ::before (Imagem atual) */
 
   background-image: var(--next-bg);
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
 
-  /* Overlay escuro aplicado à imagem */
   background-color: rgba(0, 0, 0, 0.7);
   background-blend-mode: darken;
 
   opacity: 0;
-  /* Começa invisível */
   transition: opacity 0s;
 }
 
-/* 4. ESTADO DE TRANSIÇÃO */
 .main.is-fading::after {
   opacity: 1;
   transition: opacity 2.0s ease-in-out;
-  /* A próxima imagem (::after) aparece suavemente */
 }
 
-/* 5. CONTEÚDO (Deve ficar sempre acima de tudo) */
 .content {
   z-index: 3;
-  /* Sempre o mais alto */
   position: relative;
-  /* ... (restante do código) ... */
   display: flex;
   flex-direction: row;
   justify-content: center;
@@ -398,7 +409,7 @@ onMounted(async () => {
 #overview {
   font-family: 'K2D', sans-serif;
   font-size: 25px;
-  width: 60%;
+  max-width: 800px;
   margin-top: 35px;
 }
 
@@ -409,11 +420,11 @@ onMounted(async () => {
   gap: 40px;
   border-left: solid white thin;
   width: 250px;
+  min-height: 100vh;
   background-color: transparent;
   color: white;
   padding-top: 50px;
   padding-left: 20px;
-  min-height: 100vh;
   flex-shrink: 0;
 }
 

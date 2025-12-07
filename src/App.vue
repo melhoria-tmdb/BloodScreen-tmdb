@@ -7,6 +7,14 @@ import appHeader from './components/appHeader.vue'
 
 const router = useRouter(); // ✅ INICIALIZE AQUI
 
+onMounted(() => {
+  const root = document.documentElement
+  root.style.setProperty('--vueuse-safe-area-top', '0px', 'important')
+  root.style.setProperty('--vueuse-safe-area-right', '0px', 'important')
+  root.style.setProperty('--vueuse-safe-area-bottom', '0px', 'important')
+  root.style.setProperty('--vueuse-safe-area-left', '0px', 'important')
+})
+
 const globalSearchHandler = (id) => { // Recebe o ID do filme ou série
     // ... (Lógica de Filmes)
     if (route.path.startsWith('/filmes')) {

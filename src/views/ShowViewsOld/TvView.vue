@@ -15,39 +15,34 @@ const handleShowSelect = (showId) => {
     router.push({ name: 'ShowDetails', params: { showId } });
 };
 
-// --- Variáveis de Dados e Paginação (Inspirado em SubgenreShowView) ---
-const totalShows = ref([]); // Array mestre com todos os resultados únicos
-const showsPerPage = 20; // Limitação de 20 séries por página
+const totalShows = ref([]);
+const showsPerPage = 20;
 
-const topRatedShows = ref([]); // As 5 melhores séries para o carrossel
-const currentFeaturedIndex = ref(0); // Índice atual do carrossel
+const topRatedShows = ref([]);
+const currentFeaturedIndex = ref(0);
 
 const currentPage = ref(1);
 const totalPages = ref(1);
 
-const currentSubgenre = ref(null); // Usado para destacar o item na SubgenreListShow
+const currentSubgenre = ref(null);
 
-// 🧠 Keywords principais de terror (TMDB)
+// Keywords principais de terror (TMDB)
 const horrorKeywordList = [
   12339, 233450, 208318, 279729, 309061, 325665, 325992, 338102, 351863,
   356262, 13209, 157758, 14676, 10714, 215790, 295907, 235847, 316790, 323295, 12565, 166701,
   240377, 12377, 186565, 9853, 172808, 161261, 251874, 256183, 33505,
 ];
 
-// 🎬 Subgêneros com várias keywords
 const subgenres = [
-  { id: null, name: 'Todos', keywords: horrorKeywordList, bannerPath: '/public/imgs/banner_serie.png' }, // Adicionado bannerPath
-  { id: 'zombie', name: 'Zumbi', keywords: [12377, 186565], imagePath: '/public/imgs/subgeneros_series/Zumbi.png', synopsis: 'Subgênero do horror que envolve zumbis ou infectados que são cadáveres reanimados' },
-  { id: 'slasher', name: 'Slasher', keywords: [12339, 233450, 208318, 279729, 309061, 325665, 325992, 338102, 351863, 356262, 13209, 157758, 14676, 10714], imagePath: '/public/imgs/subgeneros_series/Slasher.jpg', synopsis: 'Subgênero focado em assassinos que perseguem e eliminam vítimas de forma violenta e direta' },
-  { id: 'supernatural', name: 'Sobrenatural', keywords: [9853, 172808, 161261, 251874, 256183], imagePath: '/public/imgs/subgeneros_series/Supernatural.jpg', synopsis: 'Subgênero centrado em forças além da compreensão humana, como espíritos, demônios e fenômenos paranormais' },
-  { id: 'psychological', name: 'Psicológico', keywords: [295907, 235847, 316790, 323295, 12565, 166701, 240377], imagePath: '/public/imgs/subgeneros_series/Psicologico.png', synopsis: 'Subgênero que explora a mente humana, destacando paranoia, trauma e distorções da realidade' },
+  { id: null, name: 'Todos', keywords: horrorKeywordList, bannerPath: '/imgs/banner_serie.png' },
+  { id: 'zombie', name: 'Zumbi', keywords: [12377, 186565], imagePath: '/imgs/subgeneros_series/Zumbi.png', synopsis: 'Subgênero do horror que envolve zumbis ou infectados que são cadáveres reanimados' },
+  { id: 'slasher', name: 'Slasher', keywords: [12339, 233450, 208318, 279729, 309061, 325665, 325992, 338102, 351863, 356262, 13209, 157758, 14676, 10714], imagePath: '/imgs/subgeneros_series/Slasher.jpg', synopsis: 'Subgênero focado em assassinos que perseguem e eliminam vítimas de forma violenta e direta' },
+  { id: 'supernatural', name: 'Sobrenatural', keywords: [9853, 172808, 161261, 251874, 256183], imagePath: '/imgs/subgeneros_series/Supernatural.jpg', synopsis: 'Subgênero centrado em forças além da compreensão humana, como espíritos, demônios e fenômenos paranormais' },
+  { id: 'psychological', name: 'Psicológico', keywords: [295907, 235847, 316790, 323295, 12565, 166701, 240377], imagePath: '/imgs/subgeneros_series/Psicologico.png', synopsis: 'Subgênero que explora a mente humana, destacando paranoia, trauma e distorções da realidade' },
 ];
 
 const selectableSubgenres = subgenres.slice(1);
 
-// --- Lógica de Paginação (Adaptado de SubgenreShowView) ---
-
-// Retorna 20 shows da página atual (excluindo os 5 do topRated)
 const displayedShows = computed(() => {
   const start = (currentPage.value - 1) * showsPerPage;
   const end = start + showsPerPage;
@@ -55,12 +50,10 @@ const displayedShows = computed(() => {
   return totalShows.value.slice(start, end);
 });
 
-// Primeira metade da lista de 20 (10 shows)
 const showsTopHalf = computed(() => {
   return displayedShows.value.slice(0, 10);
 });
 
-// Segunda metade da lista de 20 (10 shows)
 const showsBottomHalf = computed(() => {
   return displayedShows.value.slice(10);
 });
@@ -104,20 +97,15 @@ const pageNumbers = computed(() => {
     pages.push('...', totalPages.value);
   }
 
-  // Filtra duplicatas de '...' e garante a ordem
   return Array.from(new Set(pages));
 });
 
-// --- Lógica do Carrossel (Adaptado de SubgenreShowView) ---
-
-// ➡️ Função de navegação para o próximo item
 const nextShow = () => {
   if (topRatedShows.value.length > 0) {
     currentFeaturedIndex.value = (currentFeaturedIndex.value + 1) % topRatedShows.value.length;
   }
 };
 
-// ⬅️ Função de navegação para o item anterior
 const prevShow = () => {
   if (topRatedShows.value.length > 0) {
     const total = topRatedShows.value.length;
@@ -125,11 +113,7 @@ const prevShow = () => {
   }
 };
 
-// 🔥 Função para listar séries (Agora com lógica de SubgenreShowView para "Todos")
 const listShows = async (sub) => {
-
-  // 🚨 REQUERIMENTO: Se o subgênero selecionado for DIFERENTE de 'Todos' (id !== null),
-  // navegamos para a view dinâmica.
   if (sub && sub.id !== null) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     router.push({
@@ -139,10 +123,7 @@ const listShows = async (sub) => {
     return;
   }
 
-  // -----------------------------------------------------------
-  // Caso 'Todos' (sub.id === null)
-  // -----------------------------------------------------------
-  if (!sub || sub.id !== null) return; // Deve ser o subgênero 'Todos'
+  if (!sub || sub.id !== null) return;
 
   try {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -153,12 +134,11 @@ const listShows = async (sub) => {
     currentPage.value = 1;
     totalPages.value = 1;
 
-    currentSubgenre.value = sub.id; // Define o subgênero atual para destaque
+    currentSubgenre.value = sub.id;
 
     const allResults = [];
-    // Usamos as keywords do subgênero 'Todos' (horrorKeywordList)
     const keywordsToUse = sub.keywords;
-    const pagesToLoad = 7; // Tentamos carregar 15 páginas por keyword para ter um bom volume
+    const pagesToLoad = 7;
     const pagePromises = [];
 
 
@@ -169,7 +149,6 @@ const listShows = async (sub) => {
             params: {
               with_keywords: kw,
               language: 'pt-BR',
-              // Usamos 'vote_average.desc' para listar as melhores séries
               sort_by: 'popularity.desc',
               include_adult: false,
               page: page,
@@ -184,28 +163,19 @@ const listShows = async (sub) => {
     const responses = await Promise.all(pagePromises);
 
     for (const list of responses) allResults.push(...list);
-
-    // Remove duplicatas
     const uniqueShows = Array.from(new Map(allResults.map((s) => [s.id, s])).values());
-
-    // Filtra sem poster_path e ordena por avaliação/popularidade
     const sortedShows = uniqueShows
       .filter((s) => s.poster_path)
       .sort((a, b) => {
-        // Prioriza vote_average, depois popularity
         return (b.popularity - a.popularity) || (b.popularity - a.popularity);
       });
 
-
-    // 2. ✂️ SEPARA AS 5 MELHORES
     const featuredCount = 20;
     topRatedShows.value = sortedShows.slice(0, featuredCount);
 
-    // 3. 🔪 AS DEMAIS VÃO PARA PAGINAÇÃO
     const paginatedShows = sortedShows.slice(featuredCount);
     totalShows.value = paginatedShows;
 
-    // 4. 🔢 CALCULA O TOTAL DE PÁGINAS (do conteúdo paginável)
     totalPages.value = Math.ceil(totalShows.value.length / showsPerPage);
     if (totalPages.value === 0 && totalShows.value.length > 0) totalPages.value = 1;
 
@@ -222,15 +192,11 @@ const listShows = async (sub) => {
 
 onMounted(async () => {
   window.scrollTo({ top: 0, behavior: 'smooth' });
-  // Carrega o subgênero 'Todos' ao montar a view
   const allSubgenre = subgenres.find(sub => sub.id === null);
   if (allSubgenre) {
     await listShows(allSubgenre);
   }
 });
-
-// O watch não é necessário aqui, pois a navegação para os subgêneros específicos
-// é tratada dentro do `listShows`. A view só carrega o 'Todos' no onMounted.
 </script>
 
 <template>
@@ -373,7 +339,6 @@ onMounted(async () => {
   color: var(--text);
 }
 
-/* 🌟 ESTILOS DA LISTA DE SÉRIES BEM AVALIADAS (CARROSSEL) 🌟 */
 
 .top-rated-carousel-wrapper {
   width: 100%;
@@ -476,7 +441,6 @@ onMounted(async () => {
   width: 300px;
 }
 
-/* ⬅️➡️ CONTROLES DE CARROSSEL ⬅️➡️ */
 
 .carousel-controls {
   display: flex;
@@ -508,9 +472,6 @@ onMounted(async () => {
   font-size: 0.9rem;
   font-family: 'K2D', thin;
 }
-
-
-/* 🚨 NOVOS ESTILOS: Paginação Numerada */
 
 .pagination-container {
   display: flex;

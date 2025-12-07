@@ -4,7 +4,6 @@ import api from '@/plugins/axios';
 import Loading from 'vue-loading-overlay';
 import { useRouter, useRoute } from 'vue-router';
 
-// ⚠️ Mudei para o componente de Filme
 import MovieList from '@/components/Movies/MovieList.vue';
 
 const isLoading = ref(false);
@@ -12,7 +11,7 @@ const router = useRouter();
 const route = useRoute();
 const movies = ref([]);
 
-const totalMovies = ref([]); // Array mestre com todos os resultados únicos
+const totalMovies = ref([]);
 const moviesPerPage = 20;
 
 const topRatedMovies = ref([]);
@@ -32,7 +31,6 @@ const props = defineProps({
     },
 });
 
-// --- Lógica de Paginação ---
 
 const displayedMovies = computed(() => {
     const start = (currentPage.value - 1) * moviesPerPage;
@@ -90,8 +88,6 @@ const pageNumbers = computed(() => {
     return Array.from(new Set(pages));
 });
 
-
-// 🎬 Subgêneros com keywords (copiado de MovieView)
 const subgenres = [
     { id: null, name: 'Todos', keywords: [] },
     { id: 'slasher', name: 'Slasher', keywords: [12339, 233450, 208318, 279729, 309061, 325665, 325992, 338102, 351863, 356262, 13209, 157758, 14676, 10714], bannerPath: '/imgs/subgeneros_filmes/Slasher banner.png' },
@@ -108,16 +104,12 @@ const getSubgenreDetails = (id) => {
     return subgenres.find(sub => sub.id === id);
 };
 
-// --- Lógica do Carrossel ---
-
-// ➡️ Função de navegação para o próximo item
 const nextMovie = () => {
     if (topRatedMovies.value.length > 0) {
         currentFeaturedIndex.value = (currentFeaturedIndex.value + 1) % topRatedMovies.value.length;
     }
 };
 
-// ⬅️ Função de navegação para o item anterior
 const prevMovie = () => {
     if (topRatedMovies.value.length > 0) {
         const total = topRatedMovies.value.length;
@@ -125,10 +117,8 @@ const prevMovie = () => {
     }
 };
 
-// 🔥 Função para listar filmes (Por Subgênero/Keywords)
 const listMovies = async (sub) => {
     if (!sub || sub.id === null) {
-        // Se for 'Todos', redireciona para a view principal
         router.replace({ name: 'MovieView' });
         return;
     }
@@ -150,9 +140,7 @@ const listMovies = async (sub) => {
         const keywordsToUse = sub.keywords;
         const pagePromises = [];
 
-        // 🚨 Lógica de listagem usando Keywords
         for (const kw of keywordsToUse) {
-            // Buscamos apenas a primeira página (como feito em SubgenreShowView)
             pagePromises.push(
                 api.get(`keyword/${kw}/movies`, {
                     params: { language: 'pt-BR', page: 1 },
@@ -164,11 +152,9 @@ const listMovies = async (sub) => {
 
         const responses = await Promise.all(pagePromises);
 
-        // Junta resultados, filtra terror e deduplica
         const mapById = new Map();
         for (const list of responses) {
             for (const m of list) {
-                // Filtra para garantir que seja do Gênero 27 (Horror)
                 if (Array.isArray(m.genre_ids) && m.genre_ids.includes(27)) {
                     mapById.set(m.id, m);
                 }
@@ -178,24 +164,19 @@ const listMovies = async (sub) => {
         const uniqueMovies = Array.from(mapById.values());
 
         const sortedMovies = uniqueMovies
-            .filter((m) => m.poster_path) // Filtra sem poster
+            .filter((m) => m.poster_path)
             .sort((a, b) => {
-                // Ordena por voto médio e depois popularidade
                 return (b.popularity - a.popularity) || (b.popularity - a.popularity);
             });
 
-        // 1. 💾 ARMAZENA TODOS OS RESULTADOS FILTRADOS
         const allFilteredMovies = sortedMovies;
 
-        // 2. ✂️ SEPARA AS 5 MELHORES
         const featuredCount = 5;
         topRatedMovies.value = allFilteredMovies.slice(0, featuredCount);
 
-        // 3. 🔪 AS DEMAIS VÃO PARA PAGINAÇÃO
         const paginatedMovies = allFilteredMovies.slice(featuredCount);
-        totalMovies.value = paginatedMovies; // totalMovies agora contém apenas o conteúdo paginável
+        totalMovies.value = paginatedMovies;
 
-        // 4. 🔢 CALCULA O TOTAL DE PÁGINAS
         totalPages.value = Math.ceil(totalMovies.value.length / moviesPerPage);
         if (totalPages.value === 0 && totalMovies.value.length > 0) totalPages.value = 1;
 
@@ -212,13 +193,11 @@ const listMovies = async (sub) => {
 
 
 const handleMovieSelect = (movieId) => {
-    // ⚠️ Mudei o nome da rota para detalhes de Filme
     router.push({ name: 'MovieDetails', params: { movieId } });
 };
 
 provide('handleSearchSelect', handleMovieSelect);
 
-// 🔄 Observa a mudança de ID na rota para recarregar
 watch(
     () => props.subgenreId,
     async (newId) => {
@@ -325,7 +304,6 @@ watch(
 </template>
 
 <style scoped>
-/* 🎨 Estilos mantidos de TvView.vue / SubgenreShowView.vue */
 #banner {
     line-height: 0;
     background-color: var(--bg);
@@ -374,8 +352,6 @@ watch(
     text-align: center;
     color: var(--text);
 }
-
-/* 🌟 ESTILOS DO CARROSSEL DE FILMES BEM AVALIADOS 🌟 */
 
 .top-rated-carousel-wrapper {
     width: 100%;
@@ -463,8 +439,6 @@ watch(
     width: 300px;
 }
 
-/* ⬅️➡️ CONTROLES DE CARROSSEL ⬅️➡️ */
-
 .carousel-controls {
     display: flex;
     justify-content: space-between;
@@ -496,8 +470,6 @@ watch(
     font-family: 'K2D', thin;
 }
 
-
-/* 🚨 ESTILOS: Paginação Numerada */
 
 .pagination-container {
     display: flex;

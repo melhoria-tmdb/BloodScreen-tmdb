@@ -18,18 +18,14 @@ const currentIndex = ref(0)
 const currentThemeColor = computed(() => slides[currentIndex.value].themeColor)
 
 watch(currentThemeColor, (newColor) => {
-    // Define uma variável CSS (--slide-theme-color) no body (ou html)
     document.documentElement.style.setProperty('--slide-theme-color', newColor)
-}, { immediate: true }) // Roda imediatamente para definir a cor inicial
+}, { immediate: true })
 
-
-// ⏱ tempo entre trocas (em ms)
 const intervalTime = 10000
 let interval = null
 
-// Função para iniciar ou reiniciar o carrossel automático
 function startInterval() {
-  clearInterval(interval) // Limpa qualquer intervalo existente
+  clearInterval(interval)
   interval = setInterval(() => {
     currentIndex.value = (currentIndex.value + 1) % slides.length
   }, intervalTime)
@@ -72,12 +68,9 @@ onUnmounted(() => {
 
 <style>
 .main-carrossel-container {
-  /* Usamos vw/vh aqui, mas se for um carrossel em um container menor, use 100% */
   height: 100vh;
   width: 100vw;
-  /* **ESSENCIAL:** O contêiner de clipping */
   overflow: hidden;
-  /* Certifica que o contêiner que está cortando tem as dimensões certas */
 }
 
 .slide-left-enter-active,
@@ -141,15 +134,14 @@ onUnmounted(() => {
     transform: translateX(-50%);
     width: 20px;
     height: 20px;
-    background-color: #ADADAD; /* Cor padrão cinza para todas */
+    background-color: #ADADAD;
     border-radius: 50%;
     z-index: 2;
-    cursor: pointer; /* Adiciona a mãozinha para indicar que é clicável */
-    transition: background-color 0.3s ease; /* Transição suave para a mudança de cor */
+    cursor: pointer;
+    transition: background-color 0.3s ease;
 }
 
-/* NOVO: A cor da bola ativa */
 .bola-ativa {
-    background-color: white !important; /* Sobrescreve o cinza quando a bola está ativa */
+    background-color: white !important; 
 }
 </style>

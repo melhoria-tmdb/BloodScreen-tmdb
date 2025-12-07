@@ -66,7 +66,7 @@ const nextPage = () => {
 
 const pageNumbers = computed(() => {
   const pages = [];
-  const maxVisible = 7; // Por exemplo, mostra até 7 botões de página
+  const maxVisible = 7;
   const half = Math.floor(maxVisible / 2);
   let startPage = Math.max(1, currentPage.value - half);
   let endPage = Math.min(totalPages.value, startPage + maxVisible - 1);
@@ -79,7 +79,6 @@ const pageNumbers = computed(() => {
     pages.push(i);
   }
 
-  // Adiciona o primeiro e o último se estiverem faltando (com elipses)
   if (startPage > 1) {
     pages.unshift(1, '...');
   }
@@ -87,26 +86,22 @@ const pageNumbers = computed(() => {
     pages.push('...', totalPages.value);
   }
 
-  // Filtra duplicatas de '...' e garante a ordem
   return Array.from(new Set(pages));
 });
 
-
-// 🧠 Keywords principais de terror (TMDB)
 const horrorKeywordList = [
   12339, 233450, 208318, 279729, 309061, 325665, 325992, 338102, 351863,
   356262, 13209, 157758, 14676, 10714, 215790, 295907, 235847, 316790, 323295, 12565, 166701,
   240377, 12377, 186565, 9853, 172808, 161261, 251874, 256183, 33505,
 ];
 
-// 🎬 Subgêneros com várias keywords
 const subgenres = [
   { id: null, name: 'Todos', keywords: horrorKeywordList },
 
-  { id: 'zombie', name: 'Zumbi', keywords: [12377, 186565], imagePath: '/public/imgs/subgeneros_series/Zumbi.png', synopsis: 'Subgênero do horror que envolve zumbis ou infectados que são cadáveres reanimados', bannerPath: '/imgs/subgeneros_series/Zumbi banner.png' },
-  { id: 'slasher', name: 'Slasher', keywords: [12339, 233450, 208318, 279729, 309061, 325665, 325992, 338102, 351863, 356262, 13209, 157758, 14676, 10714], imagePath: '/public/imgs/subgeneros_series/Slasher.jpg', synopsis: 'Subgênero focado em assassinos que perseguem e eliminam vítimas de forma violenta e direta', bannerPath: '/imgs/subgeneros_series/Slasher banner.png' },
-  { id: 'supernatural', name: 'Sobrenatural', keywords: [9853, 172808, 161261, 251874, 256183], imagePath: '/public/imgs/subgeneros_series/Supernatural.jpg', synopsis: 'Subgênero centrado em forças além da compreensão humana, como espíritos, demônios e fenômenos paranormais', bannerPath: '/imgs/subgeneros_series/Supernatural banner.png' },
-  { id: 'psychological', name: 'Psicológico', keywords: [295907, 235847, 316790, 323295, 12565, 166701, 240377], imagePath: '/public/imgs/subgeneros_series/Psicologico.png', synopsis: 'Subgênero que explora a mente humana, destacando paranoia, trauma e distorções da realidade', bannerPath: '/imgs/subgeneros_series/Psicologico banner.jpg' },
+  { id: 'zombie', name: 'Zumbi', keywords: [12377, 186565], imagePath: '/imgs/subgeneros_series/Zumbi.png', synopsis: 'Subgênero do horror que envolve zumbis ou infectados que são cadáveres reanimados', bannerPath: '/imgs/subgeneros_series/Zumbi banner.png' },
+  { id: 'slasher', name: 'Slasher', keywords: [12339, 233450, 208318, 279729, 309061, 325665, 325992, 338102, 351863, 356262, 13209, 157758, 14676, 10714], imagePath: '/imgs/subgeneros_series/Slasher.jpg', synopsis: 'Subgênero focado em assassinos que perseguem e eliminam vítimas de forma violenta e direta', bannerPath: '/imgs/subgeneros_series/Slasher banner.png' },
+  { id: 'supernatural', name: 'Sobrenatural', keywords: [9853, 172808, 161261, 251874, 256183], imagePath: '/imgs/subgeneros_series/Supernatural.jpg', synopsis: 'Subgênero centrado em forças além da compreensão humana, como espíritos, demônios e fenômenos paranormais', bannerPath: '/imgs/subgeneros_series/Supernatural banner.png' },
+  { id: 'psychological', name: 'Psicológico', keywords: [295907, 235847, 316790, 323295, 12565, 166701, 240377], imagePath: '/imgs/subgeneros_series/Psicologico.png', synopsis: 'Subgênero que explora a mente humana, destacando paranoia, trauma e distorções da realidade', bannerPath: '/imgs/subgeneros_series/Psicologico banner.jpg' },
 ];
 
 const selectableSubgenres = subgenres.slice(1);
@@ -115,14 +110,12 @@ const getSubgenreDetails = (id) => {
   return subgenres.find(sub => sub.id === id);
 };
 
-// ➡️ Função de navegação para o próximo item
 const nextShow = () => {
   if (topRatedShows.value.length > 0) {
     currentFeaturedIndex.value = (currentFeaturedIndex.value + 1) % topRatedShows.value.length;
   }
 };
 
-// ⬅️ Função de navegação para o item anterior
 const prevShow = () => {
   if (topRatedShows.value.length > 0) {
     const total = topRatedShows.value.length;
@@ -130,17 +123,16 @@ const prevShow = () => {
   }
 };
 
-// 🔥 Função para listar séries
 const listShows = async (sub) => {
   if (!sub) return;
 
   try {
     isLoading.value = true;
-    totalShows.value = []; // Limpa o array mestre
+    totalShows.value = [];
     topRatedShows.value = [];
     currentFeaturedIndex.value = 0;
 
-    currentPage.value = 1; // Volta para a página 1
+    currentPage.value = 1;
     totalPages.value = 1;
 
     currentSubgenreDetails.value = sub;
@@ -148,16 +140,12 @@ const listShows = async (sub) => {
     currentSubgenreBanner.value = sub.bannerPath;
 
     const allResults = [];
-    // Aumentamos o carregamento inicial para ter mais séries para paginar.
-    // O TMDB limita a 500 resultados (25 páginas por keyword). Vamos tentar 15.
     const pagesToLoad = 15;
     const keywordsToUse = sub.keywords;
     const pagePromises = [];
 
     for (const kw of keywordsToUse) {
       for (let page = 1; page <= pagesToLoad; page++) {
-        // Adicionamos um pequeno delay ou usamos um limitador de requests
-        // se o TMDB estiver rejeitando muitas requests simultâneas.
         pagePromises.push(
           api.get('discover/tv', {
             params: {
@@ -186,19 +174,15 @@ const listShows = async (sub) => {
         return (b.popularity - a.popularity) || (b.popularity - a.popularity);
       });
 
-    // 1. 💾 ARMAZENA TODOS OS RESULTADOS FILTRADOS
     totalShows.value = sortedShows;
 
-    // 2. 🔢 CALCULA O TOTAL DE PÁGINAS
-    totalPages.value = Math.ceil((totalShows.value.length - 5) / showsPerPage); // -5 por causa das 5 melhores
+    totalPages.value = Math.ceil((totalShows.value.length - 5) / showsPerPage);
 
-    // 3. ✂️ SEPARA AS 5 MELHORES
     const featuredCount = 5;
     topRatedShows.value = totalShows.value.slice(0, featuredCount);
 
-    // 4. 🔪 AS DEMAIS VÃO PARA PAGINAÇÃO
     const paginatedShows = totalShows.value.slice(featuredCount);
-    totalShows.value = paginatedShows; // totalShows agora contém apenas o conteúdo paginável
+    totalShows.value = paginatedShows;
 
 
   } catch (err) {
@@ -211,7 +195,6 @@ const listShows = async (sub) => {
     isLoading.value = false;
   }
 };
-
 
 const handleShowSelect = (showId) => {
   router.push({ name: 'ShowDetails', params: { showId } });
@@ -232,7 +215,6 @@ watch(
   },
   { immediate: true }
 );
-
 
 </script>
 
@@ -353,7 +335,6 @@ watch(
 
   min-height: 100vh;
   padding-top: 50px;
-  /* Ajuste este valor conforme o necessário */
 }
 
 
@@ -367,7 +348,6 @@ watch(
   text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
   margin-top: -100px;
   margin-bottom: 50px;
-  /* Mantém o espaçamento para o conteúdo abaixo */
 
 }
 
@@ -381,8 +361,6 @@ watch(
   text-align: center;
   color: var(--text);
 }
-
-/* 🌟 ESTILOS DA LISTA DE SÉRIES BEM AVALIADAS 🌟 */
 
 .top-rated-carousel-wrapper {
   width: 100%;
@@ -404,7 +382,6 @@ watch(
   gap: 2.5rem;
 }
 
-
 .featured-show-card {
   display: flex;
   align-items: center;
@@ -413,12 +390,10 @@ watch(
   border-radius: 15px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   width: 80%;
-  /* Ajuste a largura do cartão */
   margin: 0 auto;
   cursor: pointer;
   gap: 20rem;
 }
-
 
 .featured-poster-wrapper {
   position: relative;
@@ -465,7 +440,7 @@ watch(
   color: white;
   margin-top: 2rem;
   margin-bottom: 2rem;
-  /* Mantém o limite de linhas para evitar textos gigantescos */
+
   display: -webkit-box;
   -webkit-line-clamp: 12;
   -webkit-box-orient: vertical;
@@ -483,12 +458,9 @@ watch(
 .poster-and-controls-column {
   display: flex;
   flex-direction: column;
-  /* Faz com que o pôster e os controles fiquem empilhados */
   flex-shrink: 0;
   width: 300px;
 }
-
-/* ⬅️➡️ CONTROLES DE CARROSSEL 1/3 (Estilo Figma) ⬅️➡️ */
 
 .carousel-controls {
   display: flex;
@@ -510,21 +482,16 @@ watch(
   line-height: 1;
   font-weight: 10;
   font-family: 'K2D', regular;
-  /* Alinhamento vertical do chevron */
 }
 
 .nav-button:hover {
   color: #ff4747;
-  /* Cor de destaque ao passar o mouse */
 }
 
 .carousel-counter {
   font-size: 0.9rem;
   font-family: 'K2D', thin;
 }
-
-
-/* 🚨 NOVOS ESTILOS: Paginação Numerada */
 
 .pagination-container {
   display: flex;
@@ -545,7 +512,6 @@ watch(
   cursor: pointer;
   transition: background-color 0.2s, border-color 0.2s;
   min-width: 40px;
-  /* Garante que os números 1, 2, etc., tenham largura mínima */
   margin-bottom: 1.5rem;
 }
 
@@ -572,7 +538,6 @@ watch(
 
 .active-page:hover {
   background-color: #ff4747;
-  /* Sem mudança de hover para a página ativa */
 }
 
 .nav-arrow {

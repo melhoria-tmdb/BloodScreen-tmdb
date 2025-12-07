@@ -14,6 +14,11 @@
   --header-bg: transparent;
   --nav-link: #000;
   --nav-link-hover: #c00;
+  --vueuse-safe-area-top: 0px !important;
+  --vueuse-safe-area-right: 0px !important;
+  --vueuse-safe-area-bottom: 0px !important;
+  --vueuse-safe-area-left: 0px !important;
+  --slide-theme-color: 0,0,0; /* fallback seguro */
 }
 
 .dark {
@@ -23,7 +28,26 @@
   --nav-link: #fff;
   --nav-link-hover: #ff4d4d;
 }
+.no-transitions-temp *,
+.no-transitions-temp *::before,
+.no-transitions-temp *::after {
+  transition: none !important;
+  animation: none !important;
+}
 
+/* fallback seguro para a variável que apareceu antes do F5 */
+:root {
+  --slide-theme-color: 0,0,0;
+}
+
+/* performance: promover pseudo-elements para composição */
+.main::before,
+.main::after {
+  will-change: opacity, transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: translateZ(0);
+}
 html,
 body,
 #app {
@@ -31,7 +55,7 @@ body,
   padding: 0;
   width: 100%; /* O corpo ocupa 100% do HTML (sem margens) */
   height: 100%;
-  
+
 }
 
 /* usa variáveis para que o tema mude facilmente */

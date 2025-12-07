@@ -8,17 +8,14 @@ import SearchBarMovie from '@/components/Movies/SearchBarMovie.vue';
 const route = useRoute();
 
 const props = defineProps({
-  // Controla se exibe os links "FILMES" e "SÉRIES" (HomeView)
   showNavLinks: {
     type: Boolean,
     default: true
   },
-  // Controla se exibe a SearchBar (TVView, MovieView)
   showSearchBar: {
     type: Boolean,
     default: false
   },
-  // Recebe a função de abrir/fechar o menu do App.vue
   onMenuClick: {
     type: Function,
     required: true
@@ -26,7 +23,6 @@ const props = defineProps({
 });
 
 const searchHandler = inject('handleSearchSelect', () => {
-  // console.log('Função de seleção de pesquisa não injetada (provavelmente HomeView)');
 });
 
 const currentSearchBarComponent = computed(() => {

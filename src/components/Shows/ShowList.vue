@@ -104,7 +104,7 @@ function estrelas(rating) {
 
 }
 
-.show-date {
+.show-release-date {
   font-size: 0.85rem;
   color: var(--text);
   margin: 0;
@@ -144,6 +144,5 @@ function estrelas(rating) {
   background-color: #a31313;
   box-shadow: 0 0 0.7rem #ff6666;
 }
-
 
 </style>
