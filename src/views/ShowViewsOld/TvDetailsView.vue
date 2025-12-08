@@ -4,7 +4,7 @@ import { useShowStore } from '@/stores/tv';
 import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/css/index.css';
 
-const isLoading = ref(true); 
+const isLoading = ref(true);
 
 const showStore = useShowStore();
 
@@ -193,15 +193,15 @@ onMounted(async () => {
 
     <div class="content" v-if="showStore.currentShow.name">
 
-      <div class="left">
-        <h1>{{ (showStore.currentShow.name).toUpperCase() }}</h1>
+      <div class="esquerda">
+        <h1 id="titulo">{{ (showStore.currentShow.name).toUpperCase() }}</h1>
         <p id="tagline">{{ showStore.currentShow.tagline }}</p>
         <p id="overview">{{ showStore.currentShow.overview }}</p>
       </div>
 
-      <div class="right">
+      <div class="direita">
 
-        <div id="text">
+        <div id="texto">
           <p><span>Idioma Original:</span> <br>
             {{ getLanguageName(showStore.currentShow.original_language) }}
           </p>
@@ -232,13 +232,13 @@ onMounted(async () => {
           </p>
         </div>
 
-        <p class="trailer-container">
+        <div id="trailer-container-filme">
           <iframe v-if="showTrailerUrl" :src="showTrailerUrl" frameborder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen class="movie-trailer-player">
+            allowfullscreen class="movie-trailer">
           </iframe>
           <span v-else>Trailer não disponível.</span>
-        </p>
+        </div>
 
       </div>
 
@@ -314,18 +314,23 @@ onMounted(async () => {
   justify-content: center;
   align-items: center;
   width: 100%;
+  margin: 0;
 }
 
-.left {
+div.content div.esquerda {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
   padding-left: 100px;
   flex-shrink: 1;
   color: white !important;
+  margin-top: 0;
+}
+.esquerda p {
+  margin: 0;
 }
 
-.left h1 {
+#titulo {
   font-family: 'K2D', thin;
   font-weight: 400;
   font-size: 70px;
@@ -336,6 +341,7 @@ onMounted(async () => {
 #tagline {
   font-size: 20px;
   font-family: 'K2D', sans-serif;
+  margin: 0;
 }
 
 #overview {
@@ -343,9 +349,10 @@ onMounted(async () => {
   font-size: 25px;
   width: 60%;
   margin-top: 35px;
+  line-height: 2.3vw;
 }
 
-.right {
+.direita {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -354,29 +361,30 @@ onMounted(async () => {
   width: 250px;
   background-color: transparent;
   color: white;
-  padding-top: 50px;
-  padding-left: 20px;
+  padding-top: 40px;
   min-height: 100vh;
   flex-shrink: 0;
+  margin: 0 5vw 0 0;
 }
 
-.right p {
+.direita p {
   font-family: 'K2D', sans-serif;
   font-size: 18px;
   font-weight: 600;
   line-height: 2;
-  padding-left: 10px;
+  padding-left: 20px;
+  margin: 0;
 }
 
-.right p span {
-  font-size: 22px;
+.direita p span {
+  font-size: 25px;
   font-weight: 600;
   line-height: 1.4;
   opacity: 70%;
 }
 
 #classificacao {
-  font-size: 15px;
+  font-size: 17px;
   padding: 2px 5px;
   font-weight: 100;
   border: 1px solid;
@@ -384,7 +392,7 @@ onMounted(async () => {
   opacity: 100%;
 }
 
-.right p .genres-list {
+.direita p .genres-list {
   display: flex;
   flex-wrap: wrap;
   margin-top: 5px;
@@ -393,31 +401,31 @@ onMounted(async () => {
   line-height: 1.2;
 }
 
-#text {
+#texto {
   display: flex;
   flex-direction: column;
   gap: 15px;
-
 }
 
 /* CONTAINER DO TRAILER */
-.trailer-container {
-  padding-left: 0;
+#direita #trailer-container-filme {
+  margin-right: 0;
   line-height: 1;
-  margin-left: -30px;
-  margin-right: -20px;
-  margin-top: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: auto;
+  text-align: center;
+  margin: 0;
 }
 
 /* ESTILO DO IFRAME DO YOUTUBE */
-.movie-trailer-player {
-  padding-left: 0;
-  width: 100%;
-  height: 140px;
+.movie-trailer {
+  padding: 0;
+  margin: 0;
+  width: 20.1vw;
+  height: 20vh;
+  text-align: center;
+  align-items: center;
   border-radius: 5px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
