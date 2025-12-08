@@ -336,6 +336,7 @@ div.content div.esquerda {
   font-size: 70px;
   margin: 0;
   padding: 0;
+  line-height: 5vw;
 }
 
 #tagline {
