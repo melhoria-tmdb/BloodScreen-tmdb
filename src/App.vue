@@ -1,11 +1,94 @@
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, onMounted, onUnmounted, computed, provide } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import BreakoutGame from './views/Games/BreakoutGame.vue'
 import GatoRunnerGame from './views/Games/GatoRunnerGame.vue'
+import appHeader from './components/appHeader.vue'
 
-// ⬅️ NOVO: Inicializar a rota para checagem de página
+const router = useRouter(); // ✅ INICIALIZE AQUI
+
+onMounted(() => {
+  const root = document.documentElement
+  root.style.setProperty('--vueuse-safe-area-top', '0px', 'important')
+  root.style.setProperty('--vueuse-safe-area-right', '0px', 'important')
+  root.style.setProperty('--vueuse-safe-area-bottom', '0px', 'important')
+  root.style.setProperty('--vueuse-safe-area-left', '0px', 'important')
+})
+
+const globalSearchHandler = (id) => { // Recebe o ID do filme ou série
+    // ... (Lógica de Filmes)
+    if (route.path.startsWith('/filmes')) {
+        console.log('NAVEGAÇÃO GLOBAL: Indo para Detalhes do Filme:', id);
+        // Mapeia o 'id' recebido para o parâmetro 'movieId'
+        router.push({ name: 'MovieDetails', params: { movieId: id } });
+    }
+    // LÓGICA DE SÉRIES (Onde o erro estava)
+    else if (route.path.startsWith('/tv')) {
+        console.log('NAVEGAÇÃO GLOBAL: Indo para Detalhes da Série:', id);
+        // ✅ CORREÇÃO: Mapeia o 'id' recebido para o parâmetro 'showId'
+        router.push({ name: 'ShowDetails', params: { showId: id } });
+    }
+};
+
+// 💡 INJETE a função global para que o AppHeader possa usá-la
+provide('handleSearchSelect', globalSearchHandler);
+
+const isHeaderHidden = ref(false);
+let lastScrollPosition = 0; // Armazena a posição anterior do scroll
+
+// --- Constantes de Ajuste ---
+// Ajuste estas constantes com base na altura real do seu header e sensibilidade desejada
+const HEADER_HEIGHT = 100; // Altura do seu header em pixels
+const SCROLL_THRESHOLD = 50; // Quantidade de scroll para cima para o header reaparecer
+
+
+const handleScroll = () => {
+  const currentScrollPosition = window.scrollY;
+
+  if (currentScrollPosition <= HEADER_HEIGHT) {
+    isHeaderHidden.value = false;
+    lastScrollPosition = currentScrollPosition;
+    return;
+  }
+
+  if (currentScrollPosition > lastScrollPosition) {
+    isHeaderHidden.value = true;
+  }
+
+  else if (lastScrollPosition - currentScrollPosition > SCROLL_THRESHOLD) {
+    isHeaderHidden.value = false;
+  }
+
+  lastScrollPosition = currentScrollPosition;
+};
+
+// ----------------------------------------------------
+// Lifecycle Hooks
+// ----------------------------------------------------
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll);
+  lastScrollPosition = window.scrollY;
+});
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll);
+});
+
+onMounted(() => {
+  document.body.classList.add('no-scroll-x')
+})
+
+onUnmounted(() => {
+  document.body.classList.remove('no-scroll-x')
+})
+
 const route = useRoute()
+
+const isHome = computed(() => route.path === '/')
+
+const isTVOrMovie = computed(() =>
+  route.path.startsWith('/tv') || route.path.startsWith('/filmes')
+)
 
 /* ============================================================
    TEMA (Light/Dark)
@@ -111,8 +194,6 @@ onUnmounted(() => window.removeEventListener('keydown', handleKey))
 /* ============================================================
    LÓGICA DO MENU
 ============================================================ */
-// ⬅️ NOVO: Propriedade computada para saber se estamos na Home
-const isHome = computed(() => route.path === '/')
 
 /* ============================================================
    MENU HEADER MOBILE
@@ -148,29 +229,8 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <header>
-
-    <nav>
-      <div id="bloodscreen">
-        <router-link to="/" class="color-target">BLOODSCREEN</router-link>
-      </div>
-    </nav>
-
-    <nav>
-      <div id="content">
-        <router-link to="/filmes" class="color-target">FILMES</router-link>
-        <router-link to="/tv" class="color-target">SÉRIES</router-link>
-      </div>
-    </nav>
-
-    <div class="menu-container">
-      <button @click="Menu" class="p-2 border rounded text-3xl color-target" id="Menu">
-        <span class="mdi mdi-menu"></span>
-      </button>
-
-    </div>
-
-  </header>
+  <appHeader :class="{ 'header-hidden': isHeaderHidden }" class="smart-header" :show-nav-links="isHome"
+    :show-search-bar="isTVOrMovie" :on-menu-click="Menu" :on-search-select="() => { }" />
 
   <main>
     <router-view />
@@ -201,10 +261,6 @@ onUnmounted(() => {
 
           <div class="menu-item color-target balada" :class="{ active: baladaAtiva }" @click="balada">
             <span class="mdi mdi-auto-mode"></span> Automático
-          </div>
-
-          <div class="menu-item color-target" @click="cor">
-            <span class="mdi mdi-account-star"></span> Celebridades
           </div>
 
           <div class="menu-item color-target" @click="resetCor">
@@ -266,55 +322,6 @@ Cores globais
   color: var(--custom-color, var(--text)) !important;
 }
 
-/* ============================================================
-Header
-============================================================ */
-
-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  z-index: 1000;
-  background-color: var(--header-bg) !important;
-  height: 3rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 1.3vw;
-  padding: 0 4rem;
-}
-
-#bloodscreen a {
-  font-size: 30px;
-  font-weight: bold;
-  font-family: 'Metal Mania', regular;
-}
-
-#content {
-  display: flex;
-  gap: 3vw;
-  position: absolute;
-  top: 50%;
-  left: 52%;
-  transform: translate(-50%, -50%);
-}
-
-#content a {
-  text-decoration: none;
-  color: white !important;
-  font-family: 'K2D', thin;
-  font-weight: 100;
-  font-size: 20px;
-}
-
-#content a:hover {
-  color: red !important;
-}
-
-#content a.router-link-active {
-  color: rgb(240, 29, 29) !important;
-}
 
 /* ============================================================
  SIDEBAR / DRAWER
@@ -323,7 +330,6 @@ button {
   background: none;
   border: none;
   font-size: 1.6rem;
-  color: white;
   cursor: pointer;
 }
 
@@ -355,7 +361,7 @@ button {
   transition: background-color 0.8s ease;
 
   /* Fundo definido no style inline (template) */
-  color: var(--text);
+
   /* 💥 AJUSTE: Redução do padding superior para subir o cabeçalho */
   padding: 20px 0;
 
@@ -379,7 +385,6 @@ button {
   text-decoration: none;
   color: inherit;
 }
-
 .sidebar-content,
 .sidebar-footer {
   display: flex;
@@ -534,5 +539,34 @@ Balada animação
   position: absolute;
   right: 8px;
   top: 8px;
+
+}
+.close-menu{
+color: white !important;
+}
+/* ============================================================
+ SMART HEADER (Esconde/Mostra no Scroll)
+============================================================ */
+
+.smart-header {
+  /* Mantenha o header fixo no topo */
+
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 999;
+  /* Alto o suficiente para ficar acima de todo o conteúdo */
+
+
+  height: 80px;
+  background-color: var(--bg);
+
+  /* Configuração da transição suave (0.3s com aceleração suave) */
+  transition: transform 0.3s ease-in-out;
+}
+
+/* Estado oculto: move o header para fora da tela */
+.header-hidden {
+  transform: translateY(-150%);
 }
 </style>

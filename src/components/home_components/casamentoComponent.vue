@@ -1,5 +1,39 @@
 <script setup>
 const bg = '/imgs/Casamento fundo.png'
+import api from '@/plugins/axios.js'
+const TMDB_MOVIE_ID = 567609;
+
+async function handleClickTrailer() {
+    // 1. Endpoint da API v3 para vídeos (configurado com o Bearer Token no axios.js)
+    const endpoint = `/movie/${TMDB_MOVIE_ID}/videos`;
+
+    try {
+        // 2. Faz a requisição usando a instância 'api' do axios
+        const response = await api.get(endpoint);
+        const data = response.data; // Axios armazena o corpo da resposta em .data
+
+        // 3. Filtrar para encontrar o trailer principal (YouTube)
+        const trailer = data.results.find(video =>
+            video.type === 'Trailer' && video.site === 'YouTube'
+        );
+
+        if (trailer) {
+            // 4. Constrói a URL do YouTube usando a chave (key) do vídeo
+            const trailerUrl = `https://www.youtube.com/watch?v=${trailer.key}`;
+
+            // 5. Abre o trailer em uma nova aba
+            window.open(trailerUrl, '_blank');
+        } else {
+            alert('Trailer não encontrado para este filme.');
+            console.warn('Vídeos encontrados, mas trailer principal não foi localizado:', data.results);
+        }
+
+    } catch (error) {
+        // Axios joga o erro na propriedade response
+        console.error('Falha ao buscar o trailer:', error.response ? error.response.data : error.message);
+        alert('Ocorreu um erro ao tentar buscar o trailer.');
+    }
+}
 </script>
 
 <template>
@@ -15,7 +49,7 @@ const bg = '/imgs/Casamento fundo.png'
                         a noite com seus novos sogros. Grace logo se vê em uma luta sangrenta pela sobrevivência no que
                         deveria ser a sua lua de mel.
                     </p>
-                    <button class="trailer">TRAILER</button>
+                    <button class="trailer" @click="handleClickTrailer">TRAILER</button>
                 </div>
             </div>
         </section>

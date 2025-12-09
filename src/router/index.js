@@ -16,6 +16,18 @@ const routes = [
     name: 'TV',
     component: () => import('../views/ShowViewsOld/TvView.vue'),
   },
+{
+      path: '/tv/subgenero/:subgenreId',
+      name: 'SubgenreShow',
+      component: () => import('../views/ShowViewsOld/SubgenreShowView.vue'),
+      props: true,
+},
+{
+      path: '/filmes/subgenero/:subgenreId',
+      name: 'SubgenreMovie',
+      component: () => import('../views/MovieViewsOld/SubgenreMovieView.vue'),
+      props: true,
+},
   {
     path: '/elenco',
     name: 'elenco',

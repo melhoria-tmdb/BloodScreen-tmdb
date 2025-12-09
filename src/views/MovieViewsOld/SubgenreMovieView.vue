@@ -1,19 +1,15 @@
 <script setup>
-import { ref, onMounted, provide, watch, computed } from 'vue';
+import { ref, provide, watch, computed } from 'vue';
 import api from '@/plugins/axios';
 import Loading from 'vue-loading-overlay';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 
-import SubgenreListMovie from '@/components/Movies/SubgenreListMovie.vue';
 import MovieList from '@/components/Movies/MovieList.vue';
 
 const isLoading = ref(false);
 const router = useRouter();
-
-const handleMovieSelect = (movieId) => {
-    console.log('NAVEGAÇÃO LOCAL (MovieList): Tentando ir para MovieDetails com ID:', movieId);
-    router.push({ name: 'MovieDetails', params: { movieId } });
-};
+const route = useRoute();
+const movies = ref([]);
 
 const totalMovies = ref([]);
 const moviesPerPage = 20;
@@ -24,23 +20,17 @@ const currentFeaturedIndex = ref(0);
 const currentPage = ref(1);
 const totalPages = ref(1);
 
-const currentSubgenre = ref(null);
+const currentSubgenreDetails = ref(null);
+const currentSubgenreName = ref('');
+const currentSubgenreBanner = ref('');
 
-const subgenres = [
-    { id: null, name: 'Todos', keywords: [], bannerPath: '/imgs/subgeneros_filmes/filme banner.png' },
+const props = defineProps({
+    subgenreId: {
+        type: String,
+        required: true,
+    },
+});
 
-    { id: 'slasher', name: 'Slasher', keywords: [12339, 233450, 208318, 279729, 309061, 325665, 325992, 338102, 351863, 356262, 13209, 157758, 14676, 10714], imagePath: '/imgs/subgeneros_filmes/Slasher.png', synopsis: 'Subgênero focado em assassinos que perseguem e eliminam vítimas de forma violenta e direta' },
-
-    { id: 'monster', name: 'Monstro', keywords: [1299, 238534, 210614, 33696, 214881, 252343, 162536, 224587, 172136, 228939, 266782, 191143, 11100, 18193, 183787, 289108, 215790], imagePath: '/imgs/subgeneros_filmes/Monstro.png', synopsis: 'Filmes centrados em criaturas grandes, mutantes ou mitológicas que causam terror' },
-
-    { id: 'psychological', name: 'Psicológico', keywords: [295907, 235847, 316790, 323295, 12565, 166701, 240377], imagePath: '/imgs/subgeneros_filmes/Psicologico.jpg', synopsis: 'Subgênero que explora a mente humana, destacando paranoia, trauma e distorções da realidade' },
-    { id: 'zombie', name: 'Zumbi', keywords: [8624, 12377, 186565, 9925, 304449, 310175, 312469, 357193, 4884, 10349], imagePath: '/imgs/subgeneros_filmes/Zumbi.png', synopsis: 'Subgênero do horror que envolve zumbis ou infectados que são cadáveres reanimados' },
-    { id: 'supernatural', name: 'Sobrenatural', keywords: [344360, 162846, 351863, 166701, 3358, 2626, 13153, 15043, 241827, 256183, 323566, 212661, 249694, 33630, 240377, 4720, 161270, 162745, 167890, 10541], imagePath: '/imgs/subgeneros_filmes/Supernatural.jpg', synopsis: 'Subgênero centrado em forças além da compreensão humana, como espíritos, demônios e fenômenos paranormais' },
-    { id: 'gore', name: 'Gore', keywords: [10292, 351656, 157758, 14546, 306196, 325798, 280075, 284439, 157676, 10714, 447], imagePath: '/imgs/subgeneros_filmes/Gore.png', synopsis: 'Subgênero que foca em violência explícita, sangue e ferimentos gráficos' },
-    { id: 'found_footage', name: 'Found Footage', keywords: [163053, 319819, 340385, 342857, 345179], imagePath: '/imgs/subgeneros_filmes/Found footage.jpg', synopsis: 'Filmes apresentados como gravações "encontradas" ou amadoras, criando um senso de realismo' },
-];
-
-const selectableSubgenres = subgenres.slice(1);
 
 const displayedMovies = computed(() => {
     const start = (currentPage.value - 1) * moviesPerPage;
@@ -98,6 +88,22 @@ const pageNumbers = computed(() => {
     return Array.from(new Set(pages));
 });
 
+const subgenres = [
+    { id: null, name: 'Todos', keywords: [] },
+    { id: 'slasher', name: 'Slasher', keywords: [12339, 233450, 208318, 279729, 309061, 325665, 325992, 338102, 351863, 356262, 13209, 157758, 14676, 10714], bannerPath: '/imgs/subgeneros_filmes/Slasher banner.png' },
+    { id: 'monster', name: 'Monstro', keywords: [1299, 238534, 210614, 33696, 214881, 252343, 162536, 224587, 172136, 228939, 266782, 191143, 11100, 18193, 183787, 289108, 215790], bannerPath: '/imgs/subgeneros_filmes/Monstro banner.png' },
+    { id: 'psychological', name: 'Psicológico', keywords: [295907, 235847, 316790, 323295, 12565, 166701, 240377], bannerPath: '/imgs/subgeneros_filmes/Psicologico banner.png'},
+    { id: 'zombie', name: 'Zumbi', keywords: [8624, 12377, 186565, 9925, 304449, 310175, 312469, 357193, 4884, 10349], bannerPath: '/imgs/subgeneros_filmes/Zumbi banner.jpg' },
+    { id: 'supernatural', name: 'Sobrenatural', keywords: [344360, 162846, 351863, 166701, 3358, 2626, 13153, 15043, 241827, 256183, 323566, 212661, 249694, 33630, 240377, 4720, 161270, 162745, 167890, 10541], bannerPath: '/imgs/subgeneros_filmes/Supernatural banner.png' },
+    { id: 'gore', name: 'Gore', keywords: [10292, 351656, 157758, 14546, 306196, 325798, 280075, 284439, 157676, 10714, 447], bannerPath: '/imgs/subgeneros_filmes/Gore banner.png' },
+    { id: 'found_footage', name: 'Found Footage', keywords: [163053, 319819, 340385, 342857, 345179], bannerPath: '/imgs/subgeneros_filmes/Found footage banner.png' },
+];
+
+
+const getSubgenreDetails = (id) => {
+    return subgenres.find(sub => sub.id === id);
+};
+
 const nextMovie = () => {
     if (topRatedMovies.value.length > 0) {
         currentFeaturedIndex.value = (currentFeaturedIndex.value + 1) % topRatedMovies.value.length;
@@ -112,55 +118,63 @@ const prevMovie = () => {
 };
 
 const listMovies = async (sub) => {
-    if (sub && sub.id !== null) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-        router.push({
-            name: 'SubgenreMovie',
-            params: { subgenreId: sub.id }
-        });
+    if (!sub || sub.id === null) {
+        router.replace({ name: 'MovieView' });
         return;
     }
 
-    if (!sub || sub.id !== null) return;
-
     try {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
         isLoading.value = true;
         totalMovies.value = [];
         topRatedMovies.value = [];
         currentFeaturedIndex.value = 0;
+
         currentPage.value = 1;
         totalPages.value = 1;
 
-        currentSubgenre.value = sub.id;
+        currentSubgenreDetails.value = sub;
+        currentSubgenreName.value = sub.name;
+        currentSubgenreBanner.value = sub.bannerPath;
 
         const allResults = [];
-        const pagesToLoad = 29;
+        const keywordsToUse = sub.keywords;
+        const pagePromises = [];
 
-        for (let page = 1; page <= pagesToLoad; page++) {
-            const resp = await api.get('discover/movie', {
-                params: {
-                    with_genres: '27',
-                    sort_by: 'popularity.desc',
-                    language: 'pt-BR',
-                    include_adult: false,
-                    page,
-                },
-            });
-            allResults.push(...(resp.data.results || []));
+        for (const kw of keywordsToUse) {
+            pagePromises.push(
+                api.get(`keyword/${kw}/movies`, {
+                    params: { language: 'pt-BR', page: 1 },
+                })
+                    .then((r) => r.data.results || [])
+                    .catch(() => [])
+            );
         }
-        const uniqueMovies = Array.from(new Map(allResults.map(m => [m.id, m])).values());
+
+        const responses = await Promise.all(pagePromises);
+
+        const mapById = new Map();
+        for (const list of responses) {
+            for (const m of list) {
+                if (Array.isArray(m.genre_ids) && m.genre_ids.includes(27)) {
+                    mapById.set(m.id, m);
+                }
+            }
+        }
+
+        const uniqueMovies = Array.from(mapById.values());
 
         const sortedMovies = uniqueMovies
-            .filter(m => m.poster_path)
+            .filter((m) => m.poster_path)
             .sort((a, b) => {
                 return (b.popularity - a.popularity) || (b.popularity - a.popularity);
             });
 
-        const featuredCount = 20;
-        topRatedMovies.value = sortedMovies.slice(0, featuredCount);
+        const allFilteredMovies = sortedMovies;
 
-        const paginatedMovies = sortedMovies.slice(featuredCount);
+        const featuredCount = 5;
+        topRatedMovies.value = allFilteredMovies.slice(0, featuredCount);
+
+        const paginatedMovies = allFilteredMovies.slice(featuredCount);
         totalMovies.value = paginatedMovies;
 
         totalPages.value = Math.ceil(totalMovies.value.length / moviesPerPage);
@@ -177,31 +191,43 @@ const listMovies = async (sub) => {
     }
 };
 
-onMounted(async () => {
-   window.scrollTo({ top: 0, behavior: 'smooth' });
-    const allSubgenre = subgenres.find(sub => sub.id === null);
-    if (allSubgenre) {
-        await listMovies(allSubgenre);
-    }
-});
+
+const handleMovieSelect = (movieId) => {
+    router.push({ name: 'MovieDetails', params: { movieId } });
+};
+
+provide('handleSearchSelect', handleMovieSelect);
+
+watch(
+    () => props.subgenreId,
+    async (newId) => {
+        const sub = getSubgenreDetails(newId);
+        if (sub) {
+            await listMovies(sub);
+        } else {
+            console.warn(`Subgênero ID "${newId}" não encontrado.`);
+            router.replace({ name: 'MovieView' });
+        }
+    },
+    { immediate: true }
+);
 
 </script>
 
 <template>
     <div id="banner">
-        <img :src="subgenres[0].bannerPath" :alt="`Banner ${subgenres[0].name}`" class="banner-image">
+        <img :src="currentSubgenreBanner" :alt="`Banner ${currentSubgenreBanner}`" class="banner-image">
     </div>
 
-    <div id="body" class="page-container custom-scrollbar">
+    <div id="body">
 
-        <div id="genres">
-            <SubgenreListMovie :subgenres="selectableSubgenres" :current="currentSubgenre" @change="listMovies" />
-        </div>
+        <h1 class="subgenre-title">{{ currentSubgenreName }}</h1>
 
         <loading v-model:active="isLoading" is-full-page />
 
         <div id="movies">
-            <h2 v-if="moviesTopHalf.length > 0">Recomendados (Pág. {{ currentPage }})</h2>
+            <h2 v-if="displayedMovies.length > 0">Recomendados (Pág. {{ currentPage }})</h2>
+
             <MovieList :movies="moviesTopHalf" @select="handleMovieSelect" />
 
             <div v-if="topRatedMovies.length > 0" class="top-rated-carousel-wrapper">
@@ -246,6 +272,7 @@ onMounted(async () => {
                     </div>
                 </div>
             </div>
+
         </div>
 
         <MovieList :movies="moviesBottomHalf" @select="handleMovieSelect" />
@@ -273,6 +300,7 @@ onMounted(async () => {
 
         </div>
     </div>
+
 </template>
 
 <style scoped>
@@ -294,9 +322,9 @@ onMounted(async () => {
         var(--bg) 0%,
         var(--bg) 5%,
 
-        #310101 55%,
-        #310101 65%,
-
+        #310101 40%,
+        #310101 50%,
+        #310101 60%,
 
         var(--bg) 95%,
         var(--bg) 100%);
@@ -304,6 +332,7 @@ onMounted(async () => {
     min-height: 100vh;
     padding-top: 50px;
 }
+
 
 .subgenre-title {
     font-family: 'K2D', bold;
@@ -315,10 +344,6 @@ onMounted(async () => {
     text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
     margin-top: -100px;
     margin-bottom: 50px;
-}
-
-#genres {
-    margin: 6vw 0 6vw 0;
 }
 
 #movies h2 {
@@ -375,7 +400,6 @@ onMounted(async () => {
 .featured-name {
     font-family: 'K2D', thin;
     font-size: 3rem;
-    width: 130%;
     font-weight: 400;
     color: white;
     line-height: 1.1;
@@ -388,17 +412,18 @@ onMounted(async () => {
 }
 
 .featured-synopsis {
-  font-size: 1.3rem;
-  line-height: 1.6;
-  color: white;
-  margin-top: 1rem;
-  margin-bottom: 0rem;
-  display: -webkit-box;
-  -webkit-line-clamp: 12;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+    font-size: 1.3rem;
+    line-height: 1.6;
 
-  width: 120%;
+    color: white;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 12;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+
+    width: 120%;
 }
 
 .featured-rating {
@@ -444,6 +469,7 @@ onMounted(async () => {
     font-size: 0.9rem;
     font-family: 'K2D', thin;
 }
+
 
 .pagination-container {
     display: flex;

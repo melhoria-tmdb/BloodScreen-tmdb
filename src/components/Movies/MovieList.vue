@@ -1,6 +1,21 @@
 <script setup>
 const props = defineProps({ movies: Array })
 const emit = defineEmits(['select'])
+
+function estrelas(rating) {
+  const stars = Math.round(rating / 2);
+  let starHTML = '';
+
+  for (let i = 0; i < stars; i++) {
+    starHTML += '★';
+  }
+
+  for (let i = stars; i < 5; i++) {
+    starHTML += '☆';
+  }
+
+  return starHTML;
+}
 </script>
 
 <template>
@@ -13,6 +28,7 @@ const emit = defineEmits(['select'])
     >
       <img :src="`https://image.tmdb.org/t/p/w500${movie.poster_path}`" />
       <div class="movie-details">
+        <p class="movie-stars">{{ estrelas(movie.vote_average) }}</p>
         <p class="movie-title">{{ movie.title }}</p>
         <p class="movie-date">
           {{ new Date(movie.release_date).toLocaleDateString('pt-BR') }}
@@ -32,12 +48,13 @@ const emit = defineEmits(['select'])
 }
 
 .movie-card {
-  width: 15rem;
-  height: 30rem;
+  width: 300px;
+  height: 31.5rem;
   border-radius: 0.75rem;
   overflow: hidden;
-  background-color: #111;
+  background-color: transparent;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  margin: 1vw;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -52,47 +69,51 @@ const emit = defineEmits(['select'])
 
 .movie-card img {
   width: 100%;
-  height: 21rem;
+  height: 400px;
   object-fit: cover;
-  border-bottom: 2px solid #220000;
+  border-radius: 20px;
 }
 
-/* Container de texto */
 .movie-details {
-  flex: 1;
   width: 100%;
-  padding: 0.7rem;
+  padding: 0.5rem 0rem 0rem;
   display: flex;
+
+  flex: 1;
+
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
   text-align: center;
+  position: relative;
+  color: var(--text);
+  background-color: transparent;
 }
 
-/* Título do filme */
+.movie-stars {
+  font-size: 1.5rem;
+  color: var(--text);
+  margin: 0;
+
+}
+
 .movie-title {
   font-size: 1rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--text);
   text-align: center;
   line-height: 1.3rem;
-  margin-bottom: 0.4rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  font-family: 'K2D', thin;
+  margin: 0;
+
 }
 
-/* Data de lançamento */
 .movie-date {
   font-size: 0.85rem;
-  color: #bfbfbf;
-  margin-top: 0.2rem;
-  margin-bottom: 0.5rem;
+  color: var(--text);
+  margin: 0;
 }
 
-/* Gêneros */
 .movie-genres {
   display: flex;
   flex-wrap: wrap;
@@ -105,7 +126,7 @@ const emit = defineEmits(['select'])
   background-color: #7a0b0b;
   border-radius: 0.4rem;
   padding: 0.25rem 0.6rem;
-  color: #fff;
+  color: var(--text);
   font-size: 0.75rem;
   font-weight: 600;
   transition: all 0.2s ease;
@@ -119,7 +140,7 @@ const emit = defineEmits(['select'])
 
 .movie-genres span.active {
   background-color: #c71616;
-  color: #fff;
+  color: var(--text);
   box-shadow: 0 0 0.5rem #ff4d4d;
 }
 

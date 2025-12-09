@@ -18,18 +18,14 @@ const currentIndex = ref(0)
 const currentThemeColor = computed(() => slides[currentIndex.value].themeColor)
 
 watch(currentThemeColor, (newColor) => {
-    // Define uma variável CSS (--slide-theme-color) no body (ou html)
     document.documentElement.style.setProperty('--slide-theme-color', newColor)
-}, { immediate: true }) // Roda imediatamente para definir a cor inicial
+}, { immediate: true })
 
-
-// ⏱ tempo entre trocas (em ms)
 const intervalTime = 10000
 let interval = null
 
-// Função para iniciar ou reiniciar o carrossel automático
 function startInterval() {
-  clearInterval(interval) // Limpa qualquer intervalo existente
+  clearInterval(interval)
   interval = setInterval(() => {
     currentIndex.value = (currentIndex.value + 1) % slides.length
   }, intervalTime)
@@ -52,7 +48,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="w-full h-screen overflow-hidden relative">
+  <div class="main-carrossel-container w-full h-full relative">
 
     <transition name="slide-left">
       <component :is="slides[currentIndex].component" :key="currentIndex" class="w-full h-full absolute inset-0" />
@@ -71,25 +67,35 @@ onUnmounted(() => {
 </template>
 
 <style>
+.main-carrossel-container {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
 .slide-left-enter-active,
 .slide-left-leave-active {
   transition: transform 0.8s ease-in-out;
   position: absolute;
-  width: 100%;
   height: 100%;
+  width: 100%;
+  overflow: hidden;
 }
 
 .slide-left-enter-from {
   transform: translateX(100%);
+  overflow: hidden;
 }
 
 .slide-left-leave-to {
   transform: translateX(-100%);
+  overflow: hidden;
 }
 
 .slide-left-enter-to,
 .slide-left-leave-from {
   transform: translateX(0);
+  overflow: hidden;
 }
 
 .linha-e-bolas {
@@ -128,15 +134,14 @@ onUnmounted(() => {
     transform: translateX(-50%);
     width: 20px;
     height: 20px;
-    background-color: #ADADAD; /* Cor padrão cinza para todas */
+    background-color: #ADADAD;
     border-radius: 50%;
     z-index: 2;
-    cursor: pointer; /* Adiciona a mãozinha para indicar que é clicável */
-    transition: background-color 0.3s ease; /* Transição suave para a mudança de cor */
+    cursor: pointer;
+    transition: background-color 0.3s ease;
 }
 
-/* NOVO: A cor da bola ativa */
 .bola-ativa {
-    background-color: white !important; /* Sobrescreve o cinza quando a bola está ativa */
+    background-color: white !important; 
 }
 </style>

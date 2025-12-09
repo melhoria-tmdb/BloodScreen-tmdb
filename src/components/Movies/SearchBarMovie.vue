@@ -34,6 +34,7 @@ const fetchSuggestions = async () => {
 }
 
 const selectSuggestion = (movie) => {
+  console.log('Filme selecionado com ID:', movie.id); // ⬅️ ADICIONE ESTA LINHA
   query.value = movie.title
   showSuggestions.value = false
   emit('select', movie.id)
@@ -65,8 +66,9 @@ const searchAndSelect = async () => {
 
     const selected = exact || results[0]; // caso não exista exato, pega o mais relevante
 
-    emit("select", selected.id);
     showSuggestions.value = false;
+    emit("select", selected.id);
+
   } catch (err) {
     console.error("Erro ao buscar filme:", err);
   }
@@ -83,83 +85,100 @@ const clearSearch = () => {
 
 <template>
   <div class="input-wrap">
-    <input type="text" v-model="query" @input="handleInput" @keyup.enter="searchAndSelect"
-      placeholder="Pesquisar em filmes..." class="pesquisa" @focus="showSuggestions = suggestions.length > 0"
-      @blur="setTimeout(() => (showSuggestions = false), 150)" />
+   <input
+  type="text"
+  v-model="query"
+  @input="handleInput"
+  @keyup.enter="searchAndSelect"
+  placeholder="Pesquisar em filmes..."
+  class="pesquisa"
+  @focus="showSuggestions = suggestions.length > 0"
+  @blur="showSuggestions = false"
+/>
     <i v-if="query" class="mdi mdi-close-thick" @click="clearSearch"></i>
     <i class="mdi mdi-magnify" @click="searchAndSelect"></i>
 
 
     <ul v-if="showSuggestions" class="suggestion-list">
-      <li v-for="s in suggestions" :key="s.id" @click="selectSuggestion(s)" class="suggestion-item">
-        <img :src="`https://image.tmdb.org/t/p/w92${s.poster_path}`" />
-        <span>{{ s.title }}</span>
-      </li>
+      <li
+    v-for="s in suggestions"
+    :key="s.id"
+    @mousedown.prevent="selectSuggestion(s)"
+    class="suggestion-item"
+  >
+    <img :src="`https://image.tmdb.org/t/p/w92${s.poster_path}`" />
+    <span>{{ s.title }}</span>
+  </li>
     </ul>
   </div>
 </template>
 
 <style scoped>
 .input-wrap {
-  position: relative;
+  position: fixed;
+  left: 51.7%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
   display: inline-block;
+  text-align: center;
   width: 100%;
   max-width: 400px;
-  /* limite opcional — pode aumentar ou remover */
 }
 
 .input-wrap i {
   position: absolute;
-  right: 5%;
   top: 50%;
   transform: translateY(-50%);
-  color: #666;
   font-size: 20px;
-}
-.input-wrap .mdi-close-thick {
-  position: absolute;
-  right: 12%;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 18px;
-  color: #777;
+  color: var(--text);
   cursor: pointer;
-  padding: 2px 6px; /* ↓ padding vertical bem menor */
-  border-radius: 12px;
-  transition: 0.2s;
-}
-.input-wrap .mdi-close-thick:hover {
-  background: #e5e5e5;
-  color: #333;
 }
 
-.input-wrap .mdi-magnify {
-  color: #777;
-  cursor: pointer;
-  padding: 2px 6px; /* ↓ padding vertical bem menor */
-  transform: translateY(-50%);
+/* Ícone X – alinhado e com padding menor */
+.input-wrap .mdi-close-thick {
+  right: 12%;
+  padding: 2px 6px;
   border-radius: 12px;
   transition: 0.2s;
 }
+
+.input-wrap .mdi-close-thick:hover {
+  background: #e5e5e5;
+  color: var(--text);
+}
+
+/* Ícone lupa */
+.input-wrap .mdi-magnify {
+  right: 5%;
+  padding: 2px 6px;
+  border-radius: 12px;
+  transition: 0.2s;
+}
+
 .input-wrap .mdi-magnify:hover {
   background: #e5e5e5;
-  color: #333;
+  color: var(--text);
 }
 
 .pesquisa {
   width: 100%;
-  /* faz o input se ajustar ao .input-wrap */
   padding: 10px 40px 10px 15px;
-  /* espaço extra à direita pro ícone */
+  background-color: transparent;
   height: 40px;
   border: 1px solid var(--text);
-  border-radius: 6px;
+  color: var(--text);
+  border-radius: 20px;
   font-size: 16px;
+
 }
 
 .pesquisa:focus {
   outline: none;
   box-shadow: none;
+}
+
+.pesquisa::placeholder {
+  color: var(--text);
 }
 
 .pesquisa:focus-visible {
@@ -171,22 +190,15 @@ const clearSearch = () => {
   top: 100%;
   left: 0;
   width: 100%;
-  background: #111;
-  border: 1px solid #333;
+  background: var(--bg);
+  border: 1px solid var(--bg);
   border-radius: 0.5rem;
   margin-top: 4px;
   list-style: none;
   padding: 0;
   z-index: 10;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
-
-  /* 🧭 Adiciona rolagem */
   max-height: 300px;
-  /* altura máxima visível */
   overflow-y: auto;
-  /* ativa scroll vertical */
-
-  /* Opcional: scroll suave e estilizado */
   scrollbar-width: thin;
   scrollbar-color: #7a0b0b #111;
 }
@@ -196,7 +208,7 @@ const clearSearch = () => {
   align-items: center;
   gap: 10px;
   padding: 8px 12px;
-  color: #fff;
+  color: var(--text);
   cursor: pointer;
   transition: background 0.2s;
 }

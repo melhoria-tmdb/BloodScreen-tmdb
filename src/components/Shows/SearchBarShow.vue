@@ -115,33 +115,30 @@ const clearSearch = () => {
 
 <template>
   <div class="input-wrap">
-    <input
-      type="text"
-      v-model="query"
-      @input="handleInput"
-      @keyup.enter="searchAndSelect()"
-      placeholder="Pesquisar em séries..."
-      class="pesquisa"
-      @focus="showSuggestions = suggestions.length > 0"
-      @blur="setTimeout(() => (showSuggestions = false), 150)"
-    />
-
-    <!-- Ícone de limpar -->
+   <input
+  type="text"
+  v-model="query"
+  @input="handleInput"
+  @keyup.enter="searchAndSelect"
+  placeholder="Pesquisar em séries..."
+  class="pesquisa"
+  @focus="showSuggestions = suggestions.length > 0"
+  @blur="showSuggestions = false"
+/>
     <i v-if="query" class="mdi mdi-close-thick" @click="clearSearch"></i>
+    <i class="mdi mdi-magnify" @click="searchAndSelect"></i>
 
-    <!-- Ícone de lupa -->
-    <i class="mdi mdi-magnify" @click="searchAndSelect()"></i>
 
     <ul v-if="showSuggestions" class="suggestion-list">
       <li
-        v-for="s in suggestions"
-        :key="s.id"
-        @click="selectSuggestion(s)"
-        class="suggestion-item"
-      >
-        <img :src="`https://image.tmdb.org/t/p/w92${s.poster_path}`" />
-        <span>{{ s.name }}</span>
-      </li>
+    v-for="s in suggestions"
+    :key="s.id"
+    @mousedown.prevent="selectSuggestion(s)"
+    class="suggestion-item"
+  >
+    <img :src="`https://image.tmdb.org/t/p/w92${s.poster_path}`" />
+    <span>{{ s.name }}</span>
+  </li>
     </ul>
   </div>
 </template>
@@ -149,10 +146,15 @@ const clearSearch = () => {
 
 <style scoped>
 .input-wrap {
-  position: relative;
+  position: fixed;
+  left: 51.7%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
   display: inline-block;
+  text-align: center;
   width: 100%;
   max-width: 400px;
+
 }
 
 .input-wrap i {
@@ -160,7 +162,7 @@ const clearSearch = () => {
   top: 50%;
   transform: translateY(-50%);
   font-size: 20px;
-  color: #666;
+  color: var(--text);
   cursor: pointer;
 }
 
@@ -171,9 +173,10 @@ const clearSearch = () => {
   border-radius: 12px;
   transition: 0.2s;
 }
+
 .input-wrap .mdi-close-thick:hover {
   background: #e5e5e5;
-  color: #333;
+  color: var(--text);
 }
 
 /* Ícone lupa */
@@ -183,25 +186,30 @@ const clearSearch = () => {
   border-radius: 12px;
   transition: 0.2s;
 }
+
 .input-wrap .mdi-magnify:hover {
   background: #e5e5e5;
-  color: #333;
+  color: var(--text);
 }
 
 .pesquisa {
   width: 100%;
-  /* faz o input se ajustar ao .input-wrap */
   padding: 10px 40px 10px 15px;
-  /* espaço extra à direita pro ícone */
+  background-color: transparent;
   height: 40px;
   border: 1px solid var(--text);
-  border-radius: 6px;
+  color: var(--text);
+  border-radius: 20px;
   font-size: 16px;
 }
 
 .pesquisa:focus {
   outline: none;
   box-shadow: none;
+}
+
+.pesquisa::placeholder {
+  color: var(--text);
 }
 
 .pesquisa:focus-visible {
@@ -213,8 +221,8 @@ const clearSearch = () => {
   top: 100%;
   left: 0;
   width: 100%;
-  background: #111;
-  border: 1px solid #333;
+  background: var(--bg);
+  border: 1px solid var(--bg);
   border-radius: 0.5rem;
   margin-top: 4px;
   list-style: none;
@@ -231,10 +239,11 @@ const clearSearch = () => {
   align-items: center;
   gap: 10px;
   padding: 8px 12px;
-  color: #fff;
+  color: var(--text);
   cursor: pointer;
   transition: background 0.2s;
 }
+
 .suggestion-item:hover {
   background: #7a0b0b;
 }
