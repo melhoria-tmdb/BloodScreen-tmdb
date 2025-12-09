@@ -423,8 +423,8 @@ div.content div.esquerda {
 .movie-trailer {
   padding: 0;
   margin: 0;
-  width: 20.1vw;
-  height: 20vh;
+  width: 350px;
+  height: 200px;
   text-align: center;
   align-items: center;
   border-radius: 5px;
