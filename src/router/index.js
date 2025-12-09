@@ -9,25 +9,43 @@ const routes = [
   {
     path: '/filmes',
     name: 'Movies',
-    component: () => import('../views/MoviesView.vue'),
+    component: () => import('../views/MovieViewsOld/MoviesView.vue'),
   },
   {
     path: '/tv',
     name: 'TV',
-    component: () => import('../views/TvView.vue'),
+    component: () => import('../views/ShowViewsOld/TvView.vue'),
+  },
+{
+      path: '/tv/subgenero/:subgenreId',
+      name: 'SubgenreShow',
+      component: () => import('../views/ShowViewsOld/SubgenreShowView.vue'),
+      props: true,
+},
+{
+      path: '/filmes/subgenero/:subgenreId',
+      name: 'SubgenreMovie',
+      component: () => import('../views/MovieViewsOld/SubgenreMovieView.vue'),
+      props: true,
+},
+  {
+    path: '/elenco',
+    name: 'elenco',
+    component: () => import('../components/casting.vue'),
   },
   {
   path: '/movie/:movieId',
   name: 'MovieDetails',
-  component: () => import('../views/MovieDetailsView.vue'),
+  component: () => import('../views/MovieViewsOld/MovieDetailsView.vue'),
   props: true,
   },
   {
   path: '/show/:showId',
   name: 'ShowDetails',
-  component: () => import('../views/TvDetailsView.vue'),
+  component: () => import('../views/ShowViewsOld/TvDetailsView.vue'),
   props: true,
   },
+
 ];
 
 const router = createRouter({

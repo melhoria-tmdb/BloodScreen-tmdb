@@ -1,126 +1,172 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
-import BreakoutGame from './views/BreakoutGame.vue'
-import GatoRunnerGame from './views/GatoRunnerGame.vue'
+import { ref, onMounted, onUnmounted, computed, provide } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import BreakoutGame from './views/Games/BreakoutGame.vue'
+import GatoRunnerGame from './views/Games/GatoRunnerGame.vue'
+import appHeader from './components/appHeader.vue'
 
-// ======== Tema ========
+const router = useRouter(); // ✅ INICIALIZE AQUI
+
+onMounted(() => {
+  const root = document.documentElement
+  root.style.setProperty('--vueuse-safe-area-top', '0px', 'important')
+  root.style.setProperty('--vueuse-safe-area-right', '0px', 'important')
+  root.style.setProperty('--vueuse-safe-area-bottom', '0px', 'important')
+  root.style.setProperty('--vueuse-safe-area-left', '0px', 'important')
+})
+
+const globalSearchHandler = (id) => { // Recebe o ID do filme ou série
+    // ... (Lógica de Filmes)
+    if (route.path.startsWith('/filmes')) {
+        console.log('NAVEGAÇÃO GLOBAL: Indo para Detalhes do Filme:', id);
+        // Mapeia o 'id' recebido para o parâmetro 'movieId'
+        router.push({ name: 'MovieDetails', params: { movieId: id } });
+    }
+    // LÓGICA DE SÉRIES (Onde o erro estava)
+    else if (route.path.startsWith('/tv')) {
+        console.log('NAVEGAÇÃO GLOBAL: Indo para Detalhes da Série:', id);
+        // ✅ CORREÇÃO: Mapeia o 'id' recebido para o parâmetro 'showId'
+        router.push({ name: 'ShowDetails', params: { showId: id } });
+    }
+};
+
+// 💡 INJETE a função global para que o AppHeader possa usá-la
+provide('handleSearchSelect', globalSearchHandler);
+
+const isHeaderHidden = ref(false);
+let lastScrollPosition = 0; // Armazena a posição anterior do scroll
+
+// --- Constantes de Ajuste ---
+// Ajuste estas constantes com base na altura real do seu header e sensibilidade desejada
+const HEADER_HEIGHT = 100; // Altura do seu header em pixels
+const SCROLL_THRESHOLD = 50; // Quantidade de scroll para cima para o header reaparecer
+
+
+const handleScroll = () => {
+  const currentScrollPosition = window.scrollY;
+
+  if (currentScrollPosition <= HEADER_HEIGHT) {
+    isHeaderHidden.value = false;
+    lastScrollPosition = currentScrollPosition;
+    return;
+  }
+
+  if (currentScrollPosition > lastScrollPosition) {
+    isHeaderHidden.value = true;
+  }
+
+  else if (lastScrollPosition - currentScrollPosition > SCROLL_THRESHOLD) {
+    isHeaderHidden.value = false;
+  }
+
+  lastScrollPosition = currentScrollPosition;
+};
+
+// ----------------------------------------------------
+// Lifecycle Hooks
+// ----------------------------------------------------
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll);
+  lastScrollPosition = window.scrollY;
+});
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll);
+});
+
+onMounted(() => {
+  document.body.classList.add('no-scroll-x')
+})
+
+onUnmounted(() => {
+  document.body.classList.remove('no-scroll-x')
+})
+
+const route = useRoute()
+
+const isHome = computed(() => route.path === '/')
+
+const isTVOrMovie = computed(() =>
+  route.path.startsWith('/tv') || route.path.startsWith('/filmes')
+)
+
+/* ============================================================
+   TEMA (Light/Dark)
+============================================================ */
 const isDarkMode = ref(localStorage.getItem('theme') === 'dark')
 const rotating = ref(false)
 
 function toggleTheme() {
   rotating.value = true
   isDarkMode.value = !isDarkMode.value
-  if (isDarkMode.value) {
-    document.documentElement.classList.add('dark')
-  } else {
-    document.documentElement.classList.remove('dark')
-  }
+
+  document.documentElement.classList.toggle('dark', isDarkMode.value)
   localStorage.setItem('theme', isDarkMode.value ? 'dark' : 'light')
+
   setTimeout(() => (rotating.value = false), 500)
 }
 
-// ======== Cores ========
+/* ============================================================
+   GERAR COR ALEATÓRIA (apenas para ícones/links)
+============================================================ */
 function cor() {
-  document.body.style.backgroundColor = `hsl(${Math.random() * 360}, 70%, 70%)`
+  const hue = Math.floor(Math.random() * 360)
+  const corNova = `hsl(${hue}, 70%, 60%)`
+
+  document.documentElement.style.setProperty('--custom-color', corNova)
 }
 
-// ======== Balada ========
+/* ============================================================
+   BALADA (muda apenas cor dos elementos, sem fundo)
+============================================================ */
+const baladaAtiva = ref(false)
 let intervaloBalada = null
-const baladaAtiva = ref(false) // <--- REATIVO agora
 
 function balada() {
-  const fundo = document.getElementById('balada-bg')
-  const elementos = [
-    document.querySelector('.balada'),
-    document.querySelector('.reset'),
-    document.querySelector('.cor'),
-    document.querySelector('.mdi-white-balance-sunny'),
-    document.querySelector('.mdi rotate'),
-    document.querySelector('.mdi-weather-night'),
-    document.querySelector('.rotate-rotate'),
-    ...document.querySelectorAll('nav a')
-  ]
-  if (!fundo) return
+  const elementos = document.querySelectorAll('.color-target')
 
   if (!baladaAtiva.value) {
-    // Liga a balada
     baladaAtiva.value = true
-    fundo.style.display = 'block'
 
     intervaloBalada = setInterval(() => {
       const hue = Math.floor(Math.random() * 360)
-      const cor = `hsl(${hue}, 70%, 60%)`
-
-      fundo.style.backgroundColor = cor
-      elementos.forEach(el => {
-        if (el) el.style.color = cor
-      })
-    }, 600)
+      const corNova = `hsl(${hue}, 75%, 60%)`
+      document.documentElement.style.setProperty('--custom-color', corNova)
+    }, 400)
   } else {
-    // Desliga a balada com transição suave
+    // desligar balada
     baladaAtiva.value = false
     clearInterval(intervaloBalada)
     intervaloBalada = null
 
-    // Coloca a cor final para a transição
-    fundo.style.backgroundColor = ''
-    elementos.forEach(el => {
-      if (el) el.style.color = ''
-    })
-
-    // Esconde o fundo depois da transição (tempo da transição)
-    setTimeout(() => {
-      if (!baladaAtiva.value) { // só esconde se ainda estiver desligada
-        fundo.style.display = 'none'
-      }
-    }, 800) // tempo deve ser igual à transition do CSS
+    // voltar à cor original do tema (light/dark)
+    document.documentElement.style.removeProperty('--custom-color')
   }
 }
 
-// ======== Resset ========
+/* ============================================================
+   RESET (volta aos padrões do tema)
+============================================================ */
 function resetCor() {
-  const fundo = document.getElementById('balada-bg')
-  const elementos = [
-    document.querySelector('.balada'),
-    document.querySelector('.reset'),
-    document.querySelector('.cor'),
-    document.querySelector('.mdi-white-balance-sunny'),
-    document.querySelector('.mdi rotate'),
-    document.querySelector('.mdi-weather-night'),
-    document.querySelector('.rotate-rotate'),
-    ...document.querySelectorAll('nav a')
-  ]
-  document.body.style.backgroundColor = ''
   baladaAtiva.value = false
-    clearInterval(intervaloBalada)
-    intervaloBalada = null
+  clearInterval(intervaloBalada)
+  intervaloBalada = null
 
-    // Coloca a cor final para a transição
-    fundo.style.backgroundColor = ''
-    elementos.forEach(el => {
-      if (el) el.style.color = ''
-    })
-
-    // Esconde o fundo depois da transição (tempo da transição)
-    setTimeout(() => {
-      if (!baladaAtiva.value) { // só esconde se ainda estiver desligada
-        fundo.style.display = 'none'
-      }
-    }, 800) // tempo deve ser igual à transition do CSS
+  document.documentElement.style.removeProperty('--custom-color')
 }
 
-// ======== MENU E JOGOS ========
+/* ============================================================
+   MENU DE JOGOS
+============================================================ */
 const showMenu = ref(false)
 const currentGame = ref(null)
 
 const games = [
   { name: 'Breakout', view: BreakoutGame },
-  { name: 'GatoRunner', view: GatoRunnerGame },
-  // { name: 'Snake', component: SnakeGame },
-  // { name: 'Tetris', component: TetrisGame },
+  { name: 'GatoRunner', view: GatoRunnerGame }
 ]
 
-const code = ['h', 'a', 'n', 'n', 'a']
+const code = ['t', 'e', 'r', 'r', 'o', 'r']
 let inputSequence = []
 
 function handleKey(e) {
@@ -144,207 +190,383 @@ function closeGame() {
 
 onMounted(() => window.addEventListener('keydown', handleKey))
 onUnmounted(() => window.removeEventListener('keydown', handleKey))
+
+/* ============================================================
+   LÓGICA DO MENU
+============================================================ */
+
+/* ============================================================
+   MENU HEADER MOBILE
+============================================================ */
+const openMenu = ref(false)
+function Menu() {
+  openMenu.value = !openMenu.value
+}
+/* ============================================================
+   DETECTOR ClIQUE
+============================================================ */
+function handleClickOutside(event) {
+  const menuSidebar = document.querySelector('.sidebar-menu')
+  const menuButton = document.getElementById('Menu')
+
+
+  if (!openMenu.value) return
+
+  if (menuSidebar?.contains(event.target) || menuButton?.contains(event.target)) {
+    return
+  }
+  openMenu.value = false
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
+
 </script>
 
 <template>
-  <div id="balada-bg"></div>
-  <header>
-    <nav>
-      <router-link to="/">Home</router-link>
-      <router-link to="/filmes">Filmes</router-link>
-      <router-link to="/tv">Programas de TV</router-link>
-    </nav>
-
-    <div class="cores">
-      <button class="reset" @click="resetCor()">
-        <span class="mdi mdi-refresh"></span>
-      </button>
-
-      <button class="cor" @click="cor()">
-        <span class="mdi mdi-palette"></span>
-      </button>
-
-      <button class="balada" :class="{ active: baladaAtiva }" @click="balada()">
-        <span class="mdi mdi-auto-mode"></span>
-      </button>
-    </div>
-
-    <button @click="toggleTheme()" class="p-2 border rounded text-3xl text-yellow-500">
-      <span
-        :class="['mdi rotate', isDarkMode ? 'mdi-weather-night' : 'mdi-white-balance-sunny', rotating ? 'rotate-rotate' : '']">
-      </span>
-    </button>
-  </header>
+  <appHeader :class="{ 'header-hidden': isHeaderHidden }" class="smart-header" :show-nav-links="isHome"
+    :show-search-bar="isTVOrMovie" :on-menu-click="Menu" :on-search-select="() => { }" />
 
   <main>
     <router-view />
   </main>
 
-  <!-- MENU DE JOGOS -->
+  <transition name="slide-in">
+    <div v-if="openMenu" class="sidebar-overlay" @click.self="Menu"
+      :style="{ backgroundColor: isHome ? `rgba(var(--slide-theme-color), 0.5)` : 'rgba(0, 0, 0, 0.5)' }">
+      <div class="sidebar-menu" :style="{ backgroundColor: isHome ? `rgb(var(--slide-theme-color))` : 'var(--bg)' }">
+        <div class="sidebar-header">
+          <router-link to="/" class="color-target" @click="Menu">BLOODSCREEN</router-link>
+        </div>
+
+        <div class="sidebar-content">
+          <router-link to="/" class="menu-item color-target" @click="Menu">
+            <span class="mdi mdi-home-variant-outline"></span> Home
+          </router-link>
+
+          <div class="menu-item color-target" @click="cor">
+            <span class="mdi mdi-palette"></span> Aparência
+          </div>
+
+          <div class="menu-item color-target" @click="toggleTheme">
+            <span
+              :class="['mdi rotate', isDarkMode ? 'mdi-weather-night' : 'mdi-white-balance-sunny', rotating ? 'rotate-rotate' : '']"></span>
+            Modo
+          </div>
+
+          <div class="menu-item color-target balada" :class="{ active: baladaAtiva }" @click="balada">
+            <span class="mdi mdi-auto-mode"></span> Automático
+          </div>
+
+          <div class="menu-item color-target" @click="resetCor">
+            <span class="mdi mdi-reload"></span> Resetar
+          </div>
+        </div>
+
+        <div class="sidebar-footer">
+          <div class="menu-item color-target" @click="Menu">
+            <span class="mdi mdi-arrow-left-circle"></span> Voltar
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
+
+
   <div v-if="showMenu" class="overlay">
     <div class="game-window menu">
       <h2>🎮 Arcade Secreto</h2>
-      <p>Escolha um jogo para começar:</p>
+      <p>Escolha um jogo:</p>
 
       <div class="menu-buttons">
-        <button
-          v-for="game in games"
-          :key="game.name"
-          @click="openGame(game)"
-        >
-          🕹️ {{ game.name }}
-        </button>
-
-        <button class="close-menu" @click="showMenu = false">Fechar</button>
+        <div class="game-buttons">
+          <button v-for="game in games" :key="game.name" @click="openGame(game)">
+            🕹️ {{ game.name }}
+          </button>
+        </div>
+        <div class="close-button">
+          <button class="close-menu" @click="showMenu = false">Fechar</button>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- JOGO SELECIONADO -->
   <div v-if="currentGame" class="overlay">
     <div class="game-window">
-      <button class="close" @click="closeGame"></button>
-      <component :is="currentGame.view" @close="closeGame" />
+      <button class="close color-target" @click="closeGame"></button>
+
+      <component v-if="currentGame" :is="currentGame.view" @close="closeGame" @backToMenu="() => {
+        currentGame = null
+        showMenu = true
+      }" />
+
     </div>
   </div>
 </template>
 
 <style>
-header {
-  height: 3rem;
-  display: flex;
-  background-color: black;
-  color: #fff;
-  font-size: 1.2rem;
-  padding-left: 2rem;
-  justify-content: space-between;
-  align-items: center;
+/* ============================================================
+Cores globais
+============================================================ */
+:root {
+  --custom-color: unset;
 }
 
-nav {
-  column-gap: 2rem;
-  display: flex;
-  align-items: center;
+.color-target {
+  transition: color 0.8s ease !important;
+  color: var(--custom-color, var(--text)) !important;
 }
 
-nav a {
-  text-decoration: none;
-  color: #fff;
-}
 
+/* ============================================================
+ SIDEBAR / DRAWER
+============================================================ */
 button {
   background: none;
   border: none;
   font-size: 1.6rem;
-  padding-right: 2.5rem;
-  color: white;
   cursor: pointer;
 }
 
-.rotate {
-  display: inline-block;
-  transition: transform 0.5s ease;
-}
-.rotate-rotate {
-  transform: rotate(360deg);
-}
-
-.cores {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-}
-
-/* Overlays */
-.overlay {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0,0,0,0.75);
-  z-index: 9999;
-}
-.game-window {
-  background: #111;
-  padding: 24px;
-  border-radius: 12px;
+.menu-container {
   position: relative;
-  width: 720px;
-  max-width: calc(100% - 32px);
-  color: white;
-  text-align: center;
-}
-.close {
-  position: absolute;
-  right: 8px;
-  top: 8px;
-  background: transparent;
-  color: white;
-  border: none;
-  font-size: 18px;
-  cursor: pointer;
 }
 
-/* Menu */
-.menu h2 {
-  margin-bottom: 12px;
-}
-.menu-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 16px;
-}
-.menu-buttons button {
-  background: #333;
-  border: 1px solid #666;
-  border-radius: 8px;
-  padding: 10px 20px;
-  color: white;
-  font-size: 1rem;
-  transition: background 0.3s;
-}
-.menu-buttons button:hover {
-  background: #555;
-}
-.close-menu {
-  margin-top: 10px;
-  background: #a22;
-  border-color: #c44;
-}
-.close-menu:hover {
-  background: #c33;
-}
-
-/* Balada*/
-
-/* Fundo da balada */
-#balada-bg {
+.sidebar-overlay {
   position: fixed;
   top: 0;
-  left: 0;
+  right: 0;
   width: 100%;
   height: 100%;
-  z-index: -1;
-  display: none;
-  transition: background-color 0.8s ease; /* suaviza a mudança de cor */
+
+  /* Transição de cor para suavizar (mantida) */
+  transition: background-color 0.8s ease;
+
+  z-index: 10000;
+  /* Fundo definido no style inline (template) */
 }
 
-/* Elementos que mudam de cor */
-header button,
-header nav a {
-  transition: color 0.8s ease; /* suaviza a cor dos botões e links */
+.sidebar-menu {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 320px;
+  height: 100%;
+  /* Transição de cor para suavizar (mantida) */
+  transition: background-color 0.8s ease;
+
+  /* Fundo definido no style inline (template) */
+
+  /* 💥 AJUSTE: Redução do padding superior para subir o cabeçalho */
+  padding: 20px 0;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: -4px 0 10px rgba(0, 0, 0, 0.3);
 }
 
-/* Piscar do botão da balada */
+.sidebar-header {
+  align-items: center;
+  text-align: center;
+  margin-bottom: 20px;
+  /* (Removido margin-top negativa, já que o padding superior foi ajustado) */
+}
+
+.sidebar-header a {
+  font-size: 30px;
+  font-weight: bold;
+  font-family: 'Metal Mania', regular;
+  text-decoration: none;
+  color: inherit;
+}
+.sidebar-content,
+.sidebar-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 20px;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  font-size: 1.2rem;
+  font-family: 'K2D', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 4px;
+  text-decoration: none;
+}
+
+.menu-item span.mdi {
+  font-size: 1.4rem;
+  margin-right: 15px;
+}
+
+.menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  /* Ajuste para o valor padrão, 20px era muito arredondado */
+}
+
+/* Estilo para "Voltar" (Footer) */
+.sidebar-footer {
+  border-top: 1px solid var(--text);
+  padding-top: 20px;
+  margin-top: 20px;
+}
+
+.sidebar-footer .menu-item {
+  color: var(--nav-link-hover, red);
+  /* Destaca a cor do botão Voltar */
+}
+
+
+/* ============================================================
+ SIDEBAR ANIMAÇÃO
+============================================================ */
+/* Define a transição para ambos: o menu e o overlay */
+.slide-in-enter-active,
+.slide-in-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.slide-in-enter-from,
+.slide-in-leave-to {
+  opacity: 0;
+}
+
+/* Transição do Drawer (barra lateral) */
+.slide-in-enter-active .sidebar-menu,
+.slide-in-leave-active .sidebar-menu {
+  transition: transform 0.5s cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+/* Posição inicial (escondida) */
+.slide-in-enter-from .sidebar-menu,
+.slide-in-leave-to .sidebar-menu {
+  transform: translateX(100%);
+  /* Move para fora da tela (direita) */
+}
+
+/* Posição final (visível) */
+.slide-in-enter-to .sidebar-menu,
+.slide-in-leave-from .sidebar-menu {
+  transform: translateX(0);
+  /* Posição normal na tela */
+}
+
+/* ============================================================
+Balada animação
+============================================================ */
 .balada.active {
   animation: pisca 0.3s infinite alternate;
 }
 
 @keyframes pisca {
-  from { opacity: 1; transform: scale(1); }
-  to   { opacity: 0.4; transform: scale(1.12); }
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  to {
+    opacity: 0.4;
+    transform: scale(1.1);
+  }
+}
+
+/* ============================================================
+ Jogos
+============================================================ */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.game-window {
+  background: #111;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  color: white;
+  padding: 24px;
+  width: 720px;
+  max-width: calc(100% - 32px);
+  border-radius: 12px;
+}
+
+.game-window h2 {
+  font-size: 2rem;
+}
+
+.game-window p {
+  font-size: 1.4rem;
+  margin-bottom: 1.4vw;
+}
+
+.menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1vw;
+}
+
+.menu-buttons .game-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1vw;
+  margin-bottom: 1.4vw;
+}
+
+.menu-buttons .game-buttons button {
+  background-color: red;
+  border-radius: 12px;
+  padding: 1.4vw;
+}
+
+.close {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+
+}
+.close-menu{
+color: white !important;
+}
+/* ============================================================
+ SMART HEADER (Esconde/Mostra no Scroll)
+============================================================ */
+
+.smart-header {
+  /* Mantenha o header fixo no topo */
+
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 999;
+  /* Alto o suficiente para ficar acima de todo o conteúdo */
+
+
+  height: 80px;
+  background-color: var(--bg);
+
+  /* Configuração da transição suave (0.3s com aceleração suave) */
+  transition: transform 0.3s ease-in-out;
+}
+
+/* Estado oculto: move o header para fora da tela */
+.header-hidden {
+  transform: translateY(-150%);
 }
 </style>
